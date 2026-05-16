@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bolão Copa do Mundo 2026 🏆</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="fauna-bg"></div>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="s-login" class="screen active">
+  <div class="login-wrap">
+    <div class="login-card">
+      <span class="trophy-icon">🏆</span>
+      <div class="login-title">BOLÃO 2026</div>
+      <div class="login-sub">Copa do Mundo · USA • Canada • México</div>
+      <span class="frog-deco">🐸 🐆 🌿</span>
+
+      <label class="flabel">Seu nome no bolão</label>
+      <input class="finput" id="inp-name" type="text" placeholder="Ex: João Silva" maxlength="30" autocomplete="off">
+
+      <label class="flabel">Sua senha</label>
+      <div class="pw-wrap">
+        <input class="finput" id="inp-pw" type="password" placeholder="Crie ou use sua senha" maxlength="30" autocomplete="new-password">
+        <button class="pw-eye" id="pw-eye-btn" onclick="togglePw('inp-pw','pw-eye-btn')" type="button">👁</button>
+      </div>
+
+      <div class="form-err" id="login-err"></div>
+      <button class="btn-prim" id="btn-login" onclick="doLogin()">▶ ENTRAR NO BOLÃO</button>
+      <div class="form-err" id="login-info" style="color:var(--text2)"></div>
+    </div>
+
+    <div class="players-panel" id="players-panel">
+      <h4>👥 Participantes</h4>
+      <div id="players-list-login"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ GRUPOS ═══════════════ -->
+<div id="s-groups" class="screen">
+  <div class="topbar">
+    <div class="user-pill" id="user-pill-g">
+      <div class="avatar" id="avatar-g">?</div>
+      <span class="avatar-name" id="uname-g">—</span>
+    </div>
+    <div class="topbar-logo">⚽ COPA 2026</div>
+    <div id="lock-chip-g" class="lock-chip" style="display:none">🔒 BLOQUEADO</div>
+    <button class="btn-sm" onclick="doLogout()">Sair</button>
+  </div>
+  <div class="s-head">ESCOLHA UM GRUPO</div>
+  <div class="s-sub">Preencha seus palpites antes de 06/06/2026</div>
+  <div class="global-prog-wrap">
+    <div class="global-prog-label" id="global-prog-label">0 / 0 palpites</div>
+    <div class="prog-bar-outer"><div class="prog-bar-inner" id="global-prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="groups-grid" id="groups-grid"></div>
+</div>
+
+<!-- ═══════════════ TRILHA ═══════════════ -->
+<div id="s-trail" class="screen">
+  <div class="topbar">
+    <button class="btn-back" onclick="showGroups()">← Grupos</button>
+    <div class="topbar-logo" id="tr-title">GRUPO ?</div>
+    <div id="lock-chip-tr" class="lock-chip" style="display:none">🔒</div>
+  </div>
+  <div class="trail-path" id="trpath"></div>
+  <div class="trail-bottom">
+    <button class="btn-enter" id="btn-act" onclick="enterRound()">▶ PREENCHER RODADA 1</button>
+  </div>
+</div>
+
+<!-- ═══════════════ JOGOS ═══════════════ -->
+<div id="s-games" class="screen">
+  <div class="topbar">
+    <button class="btn-back" onclick="showTrail()">← Trilha</button>
+    <div class="topbar-logo" id="gt-title">GRUPO A · R1</div>
+    <div id="lock-chip-gm" class="lock-chip" style="display:none">🔒</div>
+  </div>
+  <div class="games-top">
+    <span class="gtag" id="rtag">Rodada 1</span>
+    <div class="games-title" id="rtitle">Grupo A — Rodada 1</div>
+  </div>
+  <div class="lock-notice" id="ln-gm">🔒 Prazo encerrado em 06/06/2026. Edições bloqueadas.</div>
+  <div class="games-prog">
+    <div class="label"><span id="pglbl">0/0 salvos</span><span id="pg-pct">0%</span></div>
+    <div class="prog-bar-outer"><div class="prog-bar-inner" id="pgfill" style="width:0%"></div></div>
+  </div>
+  <div class="sync-status" id="sync-status"></div>
+  <div class="games-list" id="glist"></div>
+  <div class="round-nav">
+    <button class="btn-nav" id="bprev" onclick="chRound(-1)">◀ Anterior</button>
+    <button class="btn-nav" id="bnext" onclick="chRound(1)">Próxima ▶</button>
+  </div>
+</div>
+
+<!-- ═══════════════ POPUP DE CONTINUAÇÃO ═══════════════ -->
+<div id="continue-overlay" class="continue-overlay" style="display:none">
+  <div class="continue-modal">
+    <div class="continue-icon" id="continue-icon">🎉</div>
+    <div class="continue-title" id="continue-title">Vamos continuar?</div>
+    <div class="continue-sub" id="continue-sub">Rodada completa!</div>
+    <button class="continue-cta" id="continue-cta" onclick="handleContinue()">
+      <span id="continue-cta-text">Ir para a próxima rodada</span> →
+    </button>
+    <button class="continue-skip" onclick="closeContinue()">Ficar aqui</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
