@@ -48,7 +48,7 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9d5o6av_Z3V
 /* ═══════════════════════════════════════════════════════
    CONFIG
 ═══════════════════════════════════════════════════════ */
-const LOCK_DATE   = new Date('2026-06-06T23:59:59-03:00');
+const LOCK_DATE   = new Date('2026-06-10T23:59:59-03:00');
 const STORAGE_KEY = 'bolao2026_v1';
 
 // Delay em ms antes de abrir o popup após completar rodada
