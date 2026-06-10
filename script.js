@@ -48,12 +48,12 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9d5o6av_Z3V
 /* ═══════════════════════════════════════════════════════
    CONFIG
 ═══════════════════════════════════════════════════════ */
-const LOCK_DATE   = new Date('2026-06-10T23:59:59-03:00');
+const LOCK_DATE   = new Date('2026-06-11T23:59:59-03:00');
 const STORAGE_KEY = 'bolao2026_v1';
-
+ 
 // Delay em ms antes de abrir o popup após completar rodada
 const POPUP_DELAY_MS = 3000;
-
+ 
 /* ═══════════════════════════════════════════════════════
    GROUPS & GAMES DATA
 ═══════════════════════════════════════════════════════ */
@@ -71,7 +71,7 @@ const GROUPS = {
   K:{teams:[{f:'🇵🇹',n:'Portugal'},{f:'🇨🇩',n:'RD Congo'},{f:'🇺🇿',n:'Uzbequistão'},{f:'🇨🇴',n:'Colômbia'}]},
   L:{teams:[{f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra'},{f:'🇭🇷',n:'Croácia'},{f:'🇬🇭',n:'Gana'},{f:'🇵🇦',n:'Panamá'}]},
 };
-
+ 
 const STIMG = {
   'Estádio Azteca':'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Azteca_2016.jpg/640px-Azteca_2016.jpg',
   'Estádio Akron':'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Estadio_Akron_%282018%29.jpg/640px-Estadio_Akron_%282018%29.jpg',
@@ -91,7 +91,7 @@ const STIMG = {
   'Arrowhead Stadium':'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Arrowhead_Stadium_2013.jpg/640px-Arrowhead_Stadium_2013.jpg',
   'Camping World Stadium':'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Camping_World_Stadium_2016.jpg/640px-Camping_World_Stadium_2016.jpg',
 };
-
+ 
 const MATCHES = {
   A:[
     {r:1,games:[
@@ -124,14 +124,14 @@ const MATCHES = {
   C:[
     {r:1,games:[
       {id:'C1R1G1',h:{f:'🇧🇷',n:'Brasil'},a:{f:'🇲🇦',n:'Marrocos'},dt:'13/Jun (Sáb)',tm:'19h',st:'MetLife Stadium',ci:'Nova York/NJ, EUA'},
-      {id:'C1R1G2',h:{f:'🇭🇹',n:'Haiti'},a:{f:'es',n:'Escócia'},dt:'13/Jun (Sáb)',tm:'22h',st:'Gillette Stadium',ci:'Boston, EUA'},
+      {id:'C1R1G2',h:{f:'🇭🇹',n:'Haiti'},a:{f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',n:'Escócia'},dt:'13/Jun (Sáb)',tm:'22h',st:'Gillette Stadium',ci:'Boston, EUA'},
     ]},
     {r:2,games:[
       {id:'C1R2G1',h:{f:'🇧🇷',n:'Brasil'},a:{f:'🇭🇹',n:'Haiti'},dt:'19/Jun (Sex)',tm:'19h',st:'Camping World Stadium',ci:'Orlando, EUA'},
-      {id:'C1R2G2',h:{f:'es',n:'Escócia'},a:{f:'🇲🇦',n:'Marrocos'},dt:'19/Jun (Sex)',tm:'22h',st:'Hard Rock Stadium',ci:'Miami, EUA'},
+      {id:'C1R2G2',h:{f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',n:'Escócia'},a:{f:'🇲🇦',n:'Marrocos'},dt:'19/Jun (Sex)',tm:'22h',st:'Hard Rock Stadium',ci:'Miami, EUA'},
     ]},
     {r:3,games:[
-      {id:'C1R3G1',h:{f:'🇧🇷',n:'Brasil'},a:{f:'es',n:'Escócia'},dt:'24/Jun (Qua)',tm:'21h',st:'MetLife Stadium',ci:'Nova York/NJ, EUA'},
+      {id:'C1R3G1',h:{f:'🇧🇷',n:'Brasil'},a:{f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',n:'Escócia'},dt:'24/Jun (Qua)',tm:'21h',st:'MetLife Stadium',ci:'Nova York/NJ, EUA'},
       {id:'C1R3G2',h:{f:'🇲🇦',n:'Marrocos'},a:{f:'🇭🇹',n:'Haiti'},dt:'24/Jun (Qua)',tm:'21h',st:'Gillette Stadium',ci:'Boston, EUA'},
     ]},
   ],
@@ -249,23 +249,23 @@ const MATCHES = {
   ],
   L:[
     {r:1,games:[
-      {id:'L1R1G1',h:{f:'in',n:'Inglaterra'},a:{f:'🇭🇷',n:'Croácia'},dt:'17/Jun (Qua)',tm:'17h',st:'AT&T Stadium',ci:'Dallas, EUA'},
+      {id:'L1R1G1',h:{f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra'},a:{f:'🇭🇷',n:'Croácia'},dt:'17/Jun (Qua)',tm:'17h',st:'AT&T Stadium',ci:'Dallas, EUA'},
       {id:'L1R1G2',h:{f:'🇬🇭',n:'Gana'},a:{f:'🇵🇦',n:'Panamá'},dt:'17/Jun (Qua)',tm:'20h',st:'BMO Field',ci:'Toronto, CAN'},
     ]},
     {r:2,games:[
-      {id:'L1R2G1',h:{f:'in',n:'Inglaterra'},a:{f:'🇬🇭',n:'Gana'},dt:'22/Jun (Seg)',tm:'22h',st:'NRG Stadium',ci:'Houston, EUA'},
+      {id:'L1R2G1',h:{f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra'},a:{f:'🇬🇭',n:'Gana'},dt:'22/Jun (Seg)',tm:'22h',st:'NRG Stadium',ci:'Houston, EUA'},
       {id:'L1R2G2',h:{f:'🇵🇦',n:'Panamá'},a:{f:'🇭🇷',n:'Croácia'},dt:'23/Jun (Ter)',tm:'16h',st:'Estadio BBVA',ci:'Monterrey, MEX'},
     ]},
     {r:3,games:[
-      {id:'L1R3G1',h:{f:'in',n:'Inglaterra'},a:{f:'🇵🇦',n:'Panamá'},dt:'27/Jun (Sáb)',tm:'21h',st:'AT&T Stadium',ci:'Dallas, EUA'},
+      {id:'L1R3G1',h:{f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra'},a:{f:'🇵🇦',n:'Panamá'},dt:'27/Jun (Sáb)',tm:'21h',st:'AT&T Stadium',ci:'Dallas, EUA'},
       {id:'L1R3G2',h:{f:'🇭🇷',n:'Croácia'},a:{f:'🇬🇭',n:'Gana'},dt:'27/Jun (Sáb)',tm:'21h',st:'BMO Field',ci:'Toronto, CAN'},
     ]},
   ],
 };
-
+ 
 const ALL_IDS = [];
 Object.values(MATCHES).forEach(rds=>rds.forEach(rd=>rd.games.forEach(g=>ALL_IDS.push(g.id))));
-
+ 
 /* ═══════════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════════ */
@@ -274,29 +274,29 @@ let autoPopupTimer = null;    // timer do popup de 3s
 let popupMode = null;         // 'round' | 'group' | 'finish'
 let syncQueue = [];           // fila de sincronização offline
 let isSyncing = false;
-
+ 
 /* ═══════════════════════════════════════════════════════
    STORAGE LOCAL (offline-safe, instantâneo)
 ═══════════════════════════════════════════════════════ */
 function store(){return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}
 function save(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d))}
-
+ 
 function hashPw(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h)+s.charCodeAt(i)|0;return h.toString(36)}
-
+ 
 function getUsers(){return store().users||{}}
 function saveUsers(u){const d=store();d.users=u;save(d)}
 function getScores(){return store().scores||{}}
 function saveScores(sc){const d=store();d.scores=sc;save(d)}
-
+ 
 /* session persistence */
 function getSession(){return localStorage.getItem(STORAGE_KEY+'_session')||null}
 function saveSession(name){localStorage.setItem(STORAGE_KEY+'_session',name)}
 function clearSession(){localStorage.removeItem(STORAGE_KEY+'_session')}
-
+ 
 /* sync queue persistence (para não perder dados offline) */
 function getSyncQueue(){return JSON.parse(localStorage.getItem(STORAGE_KEY+'_queue')||'[]')}
 function saveSyncQueue(q){localStorage.setItem(STORAGE_KEY+'_queue',JSON.stringify(q))}
-
+ 
 /* ═══════════════════════════════════════════════════════
    BACKEND — GOOGLE APPS SCRIPT SYNC
 ═══════════════════════════════════════════════════════ */
@@ -306,10 +306,10 @@ function setSyncStatus(state, msg) {
   el.className = 'sync-status ' + state;
   el.textContent = msg;
 }
-
+ 
 async function syncToCloud(user, matchId, h, a) {
   if (!GOOGLE_SCRIPT_URL) return; // sem URL configurada, só local
-
+ 
   const payload = {action:'save_score', user, match_id:matchId, score_home:h, score_away:a};
   
   // Adiciona na fila
@@ -317,37 +317,37 @@ async function syncToCloud(user, matchId, h, a) {
   const existing = q.findIndex(x => x.user === user && x.match_id === matchId);
   if (existing >= 0) q[existing] = payload; else q.push(payload);
   saveSyncQueue(q);
-
+ 
   processQueue();
 }
-
+ 
 async function processQueue() {
   if (isSyncing || !GOOGLE_SCRIPT_URL) return;
   const q = getSyncQueue();
   if (!q.length) return;
-
+ 
   isSyncing = true;
   setSyncStatus('syncing', '🔄 Sincronizando...');
-
+ 
   for (let i = 0; i < q.length; i++) {
     try {
       await fetch(GOOGLE_SCRIPT_URL, {
         method:'POST',
-        // Usar text/plain puro evita bloqueios de CORS do Google Apps Script
-        headers:{'Content-Type': 'text/plain'}, 
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify(q[i])
       });
       q.splice(i, 1);
       i--;
       saveSyncQueue(q);
     } catch (err) {
+      // ficará na fila para tentar depois
       console.warn('[Bolão] Falha ao sincronizar, tentará novamente:', err.message);
       break;
     }
   }
-
+ 
   isSyncing = false;
-
+ 
   if (getSyncQueue().length === 0) {
     setSyncStatus('synced', '✔ Sincronizado');
     setTimeout(() => setSyncStatus('', ''), 3000);
@@ -355,13 +355,13 @@ async function processQueue() {
     setSyncStatus('error', '⚠ Sem conexão — salvo localmente');
   }
 }
-
+ 
 // Ao voltar online, processa a fila
 window.addEventListener('online', () => {
   setSyncStatus('syncing', '🔄 Reconectado, sincronizando...');
   processQueue();
 });
-
+ 
 // Ao carregar a página, carrega dados do cloud e mescla
 async function loadFromCloud() {
   if (!GOOGLE_SCRIPT_URL) return;
@@ -383,80 +383,55 @@ async function loadFromCloud() {
     console.warn('[Bolão] Não foi possível carregar dados do cloud:', e.message);
   }
 }
-
+ 
 /* ═══════════════════════════════════════════════════════
    AUTH
 ═══════════════════════════════════════════════════════ */
 function locked(){return new Date()>LOCK_DATE}
-
+ 
 function togglePw(inputId,btnId){
   const el=document.getElementById(inputId);
   const btn=document.getElementById(btnId);
   if(el.type==='password'){el.type='text';btn.textContent='🙈';}
   else{el.type='password';btn.textContent='👁';}
 }
-
-async function doLogin(){
+ 
+function doLogin(){
   const name=document.getElementById('inp-name').value.trim();
   const pw=document.getElementById('inp-pw').value;
   const err=document.getElementById('login-err');
   const info=document.getElementById('login-info');
   err.textContent='';info.textContent='';
-
+ 
   if(!name){err.textContent='Digite seu nome no bolão.';return;}
   if(pw.length<3){err.textContent='Senha deve ter pelo menos 3 caracteres.';return;}
-
+ 
+  const users=getUsers();
   const hash=hashPw(pw);
-  
-  info.textContent='Aguarde, conectando ao servidor... 🔄';
-  
-  try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'login', user: name, passHash: hash })
-    });
-
-    const result = await response.json();
-
-    if (result.ok) {
-      info.textContent = 'Acesso liberado! 👋';
-      
-      // Mantém um registro local apenas para popular a lista visual de "quem já entrou"
-      const users = getUsers();
-      if (!users[name]) {
-        users[name] = { joined: Date.now() };
-        saveUsers(users);
-      }
-      
-      S.user = name;
-      saveSession(name);
-      
-      // Sincroniza os palpites da nuvem logo após o login
-      await loadFromCloud();
-      setTimeout(()=>showGroups(),500);
-      
-    } else {
-      err.textContent = result.error;
-      info.textContent = '';
-    }
-  } catch (error) {
-    console.error('Erro de Login:', error);
-    err.textContent = 'Erro de conexão. Verifique sua internet.';
-    info.textContent = '';
+ 
+  if(users[name]){
+    if(users[name].pw!==hash){err.textContent='Senha incorreta para este nome.';return;}
+    info.textContent='Bem-vindo de volta, '+name+'! 👋';
+  } else {
+    users[name]={pw:hash,joined:Date.now()};
+    saveUsers(users);
+    info.textContent='Cadastro realizado! Bem-vindo, '+name+'! 🎉';
   }
+  S.user=name;
+  saveSession(name);
+  setTimeout(()=>showGroups(),500);
 }
-
+ 
 document.getElementById('inp-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('inp-name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('inp-pw').focus();});
-
+ 
 function doLogout(){S.user=null;clearSession();show('s-login');renderPlayersLogin();}
-
+ 
 function fillName(n){
   document.getElementById('inp-name').value=n;
   document.getElementById('inp-pw').focus();
 }
-
+ 
 /* ═══════════════════════════════════════════════════════
    SCORES HELPERS
 ═══════════════════════════════════════════════════════ */
@@ -464,29 +439,29 @@ function getSc(user,id){
   const sc=getScores();
   return (sc[user]&&sc[user][id]!=null)?sc[user][id]:null;
 }
-
+ 
 function saveSc(user,id,h,a){
   // 1. Salva localmente (imediato, não depende de rede)
   const sc=getScores();
   if(!sc[user])sc[user]={};
   sc[user][id]={h,a};
   saveScores(sc);
-
+ 
   // 2. Dispara sincronização em background (não bloqueia UI)
   syncToCloud(user, id, h, a);
 }
-
+ 
 function countFilled(user){
   return ALL_IDS.filter(id=>{const s=getSc(user,id);return s&&s.h!==''&&s.a!==''}).length;
 }
-
+ 
 function userStatus(user){
   const n=countFilled(user);
   if(n===ALL_IDS.length)return'done';
   if(n>0)return'partial';
   return'empty';
 }
-
+ 
 function groupFillCount(letter,user){
   let total=0,done=0;
   MATCHES[letter].forEach(rd=>rd.games.forEach(g=>{
@@ -496,7 +471,7 @@ function groupFillCount(letter,user){
   }));
   return{total,done};
 }
-
+ 
 /* ═══════════════════════════════════════════════════════
    PLAYERS LOGIN PANEL
 ═══════════════════════════════════════════════════════ */
@@ -521,7 +496,7 @@ function renderPlayersLogin(){
 }
 renderPlayersLogin();
 setInterval(renderPlayersLogin, 15000);
-
+ 
 // Auto-login por sessão
 (function(){
   const saved=getSession();
@@ -530,10 +505,10 @@ setInterval(renderPlayersLogin, 15000);
     showGroups();
   }
 })();
-
+ 
 // Carrega do cloud em background
 loadFromCloud();
-
+ 
 /* ═══════════════════════════════════════════════════════
    SCREEN SWITCHER
 ═══════════════════════════════════════════════════════ */
@@ -541,7 +516,7 @@ function show(id){
   document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));
   window.scrollTo({top:0,behavior:'instant'});
 }
-
+ 
 /* ═══════════════════════════════════════════════════════
    GROUPS SCREEN
 ═══════════════════════════════════════════════════════ */
@@ -553,14 +528,14 @@ function showGroups(){
   renderGroupsGrid();
   show('s-groups');
 }
-
+ 
 function renderGroupsGrid(){
   const grid=document.getElementById('groups-grid');
   const total=ALL_IDS.length;
   const done=countFilled(S.user);
   document.getElementById('global-prog-label').textContent=`${done} / ${total} palpites preenchidos`;
   document.getElementById('global-prog-fill').style.width=`${(done/total)*100}%`;
-
+ 
   grid.innerHTML=Object.entries(GROUPS).map(([letter,data])=>{
     const {total:gt,done:gd}=groupFillCount(letter,S.user);
     const st=gd===gt?'done':gd>0?'partial':'';
@@ -581,7 +556,7 @@ function renderGroupsGrid(){
     </div>`;
   }).join('');
 }
-
+ 
 /* ═══════════════════════════════════════════════════════
    TRAIL SCREEN
 ═══════════════════════════════════════════════════════ */
@@ -590,28 +565,28 @@ function openGroup(letter){
   S.rounds=MATCHES[letter];
   showTrail();
 }
-
+ 
 function showTrail(){
   document.getElementById('tr-title').textContent=`GRUPO ${S.group}`;
   document.getElementById('lock-chip-tr').style.display=locked()?'flex':'none';
   renderTrail();
   show('s-trail');
 }
-
+ 
 function rdDone(ri){
   return S.rounds[ri].games.every(g=>{const s=getSc(S.user,g.id);return s&&s.h!==''&&s.a!==''});
 }
-
+ 
 function renderTrail(){
   const rounds=S.rounds;
   let ai=0;
   for(let i=0;i<rounds.length;i++){if(rdDone(i))ai=i+1;else{ai=i;break;}}
   if(rounds.every((_,i)=>rdDone(i)))ai=rounds.length-1;
   S.round=ai+1;
-
+ 
   const nc=['#f5c518','#00d4b8','#e84040'];
   const trpath=document.getElementById('trpath');
-
+ 
   trpath.innerHTML=rounds.map((rd,i)=>{
     const done=rdDone(i);
     const active=i===ai&&!done;
@@ -620,11 +595,12 @@ function renderTrail(){
     const nClass=done?'done':active?'active':'';
     const cClass=done?'done':active?'active':'';
     const isRight=i%2!==0;
-
+ 
     const matchup=rd.games.map(g=>`${g.h.f} ${g.h.n.split(' ')[0]} × ${g.a.f} ${g.a.n.split(' ')[0]}`).join('\n');
     const stKey=rd.games[0].st;
     const imgSrc=STIMG[stKey]||'';
-
+ 
+    // MELHORIA UX: Card inteiro clicável, abre a rodada diretamente
     return`<div class="trail-step${isRight?' right':''}" style="--c:${c}">
       ${!isRight?`<div class="tnode ${nClass}" style="border-color:${c}">${nl}</div>`:''}
       <div class="tcard ${cClass}" 
@@ -642,20 +618,21 @@ function renderTrail(){
       ${isRight?`<div class="tnode ${nClass}" style="border-color:${c}">${nl}</div>`:''}
     </div>`;
   }).join('');
-
+ 
   document.getElementById('btn-act').textContent=`▶ PREENCHER RODADA ${S.round}`;
 }
-
+ 
+// NOVO: abre a rodada clicando no card — mesma ação do botão
 function openRoundFromTrail(roundIndex) {
   S.round = roundIndex + 1;
   enterRound();
 }
-
+ 
 function selRound(i){
   S.round=i+1;
   document.getElementById('btn-act').textContent=`▶ RODADA ${S.round}`;
 }
-
+ 
 function enterRound(){
   renderGames();
   show('s-games');
@@ -663,7 +640,7 @@ function enterRound(){
   document.getElementById('ln-gm').style.display=lk?'flex':'none';
   document.getElementById('lock-chip-gm').style.display=lk?'flex':'none';
 }
-
+ 
 /* ═══════════════════════════════════════════════════════
    GAMES SCREEN
 ═══════════════════════════════════════════════════════ */
@@ -671,11 +648,11 @@ function renderGames(){
   const letter=S.group;
   const rd=S.rounds[S.round-1];
   const lk=locked();
-
+ 
   document.getElementById('gt-title').textContent=`GRUPO ${letter} · R${S.round}`;
   document.getElementById('rtag').textContent=`Rodada ${S.round}`;
   document.getElementById('rtitle').textContent=`Grupo ${letter} — Rodada ${S.round}`;
-
+ 
   const list=document.getElementById('glist');
   list.innerHTML=rd.games.map((g,gi)=>{
     const id=g.id;
@@ -711,18 +688,18 @@ function renderGames(){
       </div>
     </div>`;
   }).join('');
-
+ 
   updProg();
   document.getElementById('bprev').disabled=S.round<=1;
   document.getElementById('bnext').disabled=S.round>=S.rounds.length;
 }
-
+ 
 function onInput(id){
   const h=document.getElementById(`h-${id}`).value;
   const a=document.getElementById(`a-${id}`).value;
   if(h!==''&&a!=='')saveGame(id,0,true);
 }
-
+ 
 function saveGame(id,gi,silent=false){
   const h=document.getElementById(`h-${id}`).value.trim();
   const a=document.getElementById(`a-${id}`).value.trim();
@@ -736,53 +713,53 @@ function saveGame(id,gi,silent=false){
   }
   al.style.display='none';
   saveSc(S.user,id,h,a);
-
+ 
   const card=document.getElementById(`gc-${id}`);
   card.classList.add('saved');
   const sb=document.getElementById(`sb-${id}`);
   if(sb)sb.style.display='inline-flex';
-
+ 
   if(!silent)toast('✔ Placar salvo!','ok');
   updProg();
   renderPlayersLogin();
   checkAuto();
 }
-
+ 
 /* ═══════════════════════════════════════════════════════
    POPUP "VAMOS CONTINUAR?" — lógica central
 ═══════════════════════════════════════════════════════ */
 function checkAuto(){
   // Cancela qualquer timer pendente antes de avaliar
   clearTimeout(autoPopupTimer);
-
+ 
   const rd = S.rounds[S.round-1];
   const roundDone = rd.games.every(g=>{const s=getSc(S.user,g.id);return s&&s.h!==''&&s.a!==''});
-
+ 
   if (!roundDone) return; // rodada ainda incompleta
-
+ 
   const isLastRound = S.round >= S.rounds.length;
-
+ 
   if (!isLastRound) {
     // ── Caso 1: Rodada completa, ainda tem próxima rodada ──
     autoPopupTimer = setTimeout(() => {
       showContinuePopup('round');
     }, POPUP_DELAY_MS);
-
+ 
   } else {
     // ── Última rodada — verifica se o grupo todo está completo ──
     const groupAllDone = S.rounds.every((_,i)=>rdDone(i));
-
+ 
     if (groupAllDone) {
       const keys = Object.keys(GROUPS);
       const isLastGroup = S.group === keys[keys.length - 1];
-
+ 
       autoPopupTimer = setTimeout(() => {
         showContinuePopup(isLastGroup ? 'finish' : 'group');
       }, POPUP_DELAY_MS);
     }
   }
 }
-
+ 
 function showContinuePopup(mode) {
   popupMode = mode;
   const overlay  = document.getElementById('continue-overlay');
@@ -791,10 +768,10 @@ function showContinuePopup(mode) {
   const title    = document.getElementById('continue-title');
   const sub      = document.getElementById('continue-sub');
   const ctaText  = document.getElementById('continue-cta-text');
-
+ 
   // Configura conteúdo conforme o modo
   modal.classList.remove('next-group');
-
+ 
   if (mode === 'round') {
     icon.textContent    = '🎉';
     title.textContent   = 'Vamos continuar?';
@@ -813,10 +790,10 @@ function showContinuePopup(mode) {
     sub.textContent     = 'Todos os grupos preenchidos!';
     ctaText.textContent = 'Ver resumo';
   }
-
+ 
   overlay.style.display = 'flex';
 }
-
+ 
 function handleContinue() {
   closeContinue();
   if (popupMode === 'round') {
@@ -828,22 +805,22 @@ function handleContinue() {
     showGroups();
   }
 }
-
+ 
 function closeContinue() {
   document.getElementById('continue-overlay').style.display = 'none';
   clearTimeout(autoPopupTimer);
 }
-
+ 
 // Fecha ao clicar fora do modal
 document.getElementById('continue-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeContinue();
 });
-
+ 
 // Fecha com Esc
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeContinue();
 });
-
+ 
 /* ═══════════════════════════════════════════════════════
    NAVEGAÇÃO ENTRE GRUPOS
 ═══════════════════════════════════════════════════════ */
@@ -857,7 +834,7 @@ function goToNextGroup() {
     showGroups();
   }
 }
-
+ 
 /* ═══════════════════════════════════════════════════════
    PROGRESS BAR & NAVEGAÇÃO DE RODADAS
 ═══════════════════════════════════════════════════════ */
@@ -866,13 +843,13 @@ function updProg(){
   const total=rd.games.length;
   const done=rd.games.filter(g=>{const s=getSc(S.user,g.id);return s&&s.h!==''&&s.a!==''}).length;
   const pct=total?Math.round(done/total*100):0;
-
+ 
   document.getElementById('pglbl').textContent=`${done}/${total} salvos`;
   document.getElementById('pg-pct').textContent=`${pct}%`;
   document.getElementById('pgfill').style.width=`${pct}%`;
-
+ 
   const bnext = document.getElementById('bnext');
-
+ 
   if (S.round === S.rounds.length) {
     if (done === total) {
       const keys = Object.keys(GROUPS);
@@ -894,13 +871,13 @@ function updProg(){
     bnext.classList.remove('btn-destaque');
   }
 }
-
+ 
 function chRound(d){
   S.round+=d;
   renderGames();
   window.scrollTo({top:0,behavior:'smooth'});
 }
-
+ 
 /* ═══════════════════════════════════════════════════════
    TOAST
 ═══════════════════════════════════════════════════════ */
@@ -911,4 +888,294 @@ function toast(msg,type='ok'){
   el.className='show '+type;
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>el.className='',2500);
+}
+ 
+/* ═══════════════════════════════════════════════════════
+   RANKING & RESULTADOS OFICIAIS
+   ────────────────────────────────────────────────────────
+   Sistema de pontuação:
+   • 3 pts  → placar exato correto
+   • 1.5 pts → resultado correto (vitória/empate) mas placar errado
+   • 0 pts  → errou o resultado
+═══════════════════════════════════════════════════════ */
+ 
+/* Armazena resultados oficiais separado dos palpites */
+const RESULTS_KEY = 'bolao2026_results';
+/* Senha admin — altere aqui para proteger o painel */
+const ADMIN_PW_HASH = hashPw('admin123'); // padrão: admin123
+ 
+function getOfficialResults(){return JSON.parse(localStorage.getItem(RESULTS_KEY)||'{}')}
+function saveOfficialResult(matchId, h, a){
+  const r = getOfficialResults();
+  r[matchId] = {h: String(h), a: String(a)};
+  localStorage.setItem(RESULTS_KEY, JSON.stringify(r));
+}
+ 
+/* ── Calcula pontos de um usuário para um jogo ── */
+function calcPoints(palpite, oficial){
+  if(!palpite || palpite.h==='' || palpite.a==='') return null; // sem palpite
+  if(!oficial  || oficial.h ==='' || oficial.a ==='') return null; // sem resultado
+ 
+  const ph=parseInt(palpite.h), pa=parseInt(palpite.a);
+  const oh=parseInt(oficial.h),  oa=parseInt(oficial.a);
+ 
+  // Placar exato
+  if(ph===oh && pa===oa) return 3;
+ 
+  // Resultado certo
+  const pRes = ph>pa?'H': ph<pa?'A':'D';
+  const oRes = oh>oa?'H': oh<oa?'A':'D';
+  if(pRes===oRes) return 1.5;
+ 
+  return 0;
+}
+ 
+/* ── Compila ranking de todos os usuários ── */
+function buildRanking(){
+  const users   = Object.keys(getUsers());
+  const results = getOfficialResults();
+  const scores  = getScores();
+ 
+  // Conta quantos jogos têm resultado oficial
+  const matchesWithResult = Object.keys(results).length;
+ 
+  const ranking = users.map(user => {
+    let pts=0, exact=0, partial=0, miss=0, pending=0;
+    ALL_IDS.forEach(id=>{
+      const palpite = scores[user] ? scores[user][id] : null;
+      const oficial = results[id];
+      const p = calcPoints(palpite, oficial);
+      if(p===null){
+        if(oficial && (!palpite || palpite.h==='' || palpite.a==='')) miss++;
+        else pending++;
+      } else if(p===3){ pts+=3; exact++; }
+      else if(p===1.5){ pts+=1.5; partial++; }
+      else { miss++; }
+    });
+    const filled = countFilled(user);
+    return {user, pts, exact, partial, miss, pending, filled};
+  });
+ 
+  // Ordena por pontos desc, depois por exatos desc, depois por nome
+  ranking.sort((a,b)=> b.pts!==a.pts ? b.pts-a.pts : b.exact!==a.exact ? b.exact-a.exact : a.user.localeCompare(b.user));
+ 
+  return {ranking, matchesWithResult};
+}
+ 
+/* ── Tela Ranking ── */
+function showRanking(){
+  show('s-ranking');
+  // Mostra botão admin só se já tem senha configurada no localStorage
+  const isAdmin = localStorage.getItem('bolao_admin')==='1';
+  document.getElementById('btn-admin-results').style.display = isAdmin ? 'block' : 'none';
+  renderRanking();
+  populateAdminGroupSelect();
+}
+ 
+function renderRanking(){
+  const {ranking, matchesWithResult} = buildRanking();
+  const info = document.getElementById('ranking-matches-info');
+  info.textContent = matchesWithResult > 0
+    ? `${matchesWithResult} jogo${matchesWithResult!==1?'s':''} com resultado oficial`
+    : 'Nenhum resultado oficial inserido ainda';
+ 
+  const list = document.getElementById('ranking-list');
+ 
+  if(!ranking.length){
+    list.innerHTML=`<div class="ranking-empty"><div class="re-icon">👥</div><p>Nenhum participante ainda.</p></div>`;
+    return;
+  }
+ 
+  const medals=['🥇','🥈','🥉'];
+ 
+  list.innerHTML = ranking.map((r,i)=>{
+    const pos = i+1;
+    const posCls = pos===1?'p1':pos===2?'p2':pos===3?'p3':'pN';
+    const cardCls = pos<=3?`rank-${pos}`:'';
+    const medal = medals[i] || '';
+    const pct = ALL_IDS.length ? Math.round(r.filled/ALL_IDS.length*100) : 0;
+    const ptsDisplay = r.pts % 1 === 0 ? r.pts.toString() : r.pts.toFixed(1);
+ 
+    return`<div class="rank-card ${cardCls}" onclick="showUserDetail('${r.user.replace(/'/g,"\\'")}')">
+      ${medal?`<div class="rank-medal">${medal}</div>`:''}
+      <div class="rank-row">
+        <div class="rank-pos ${posCls}">${pos}°</div>
+        <div class="rank-avatar">${r.user[0].toUpperCase()}</div>
+        <div class="rank-info">
+          <div class="rank-name">${r.user}</div>
+          <div class="rank-breakdown">
+            <span class="rbd-chip rbd-exact">⚡ ${r.exact} exatos</span>
+            <span class="rbd-chip rbd-partial">✓ ${r.partial} parciais</span>
+            ${r.miss?`<span class="rbd-chip rbd-miss">✗ ${r.miss} erros</span>`:''}
+          </div>
+          <div class="rank-progress">
+            <div class="rp-bar-outer"><div class="rp-bar-inner" style="width:${pct}%"></div></div>
+          </div>
+        </div>
+        <div class="rank-pts-box">
+          <div class="rank-pts-num">${ptsDisplay}</div>
+          <div class="rank-pts-label">PTS</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+ 
+/* ── Detalhe de um usuário ── */
+function showUserDetail(user){
+  const results = getOfficialResults();
+  const scores  = getScores();
+  const wrap = document.getElementById('ranking-detail-wrap');
+  const ttl  = document.getElementById('rd-title');
+  const lst  = document.getElementById('ranking-detail-list');
+ 
+  ttl.textContent = `📋 Palpites de ${user}`;
+ 
+  const rows = [];
+  Object.entries(MATCHES).forEach(([letter, rds])=>{
+    rds.forEach(rd=>{
+      rd.games.forEach(g=>{
+        const palpite = scores[user] ? scores[user][g.id] : null;
+        const oficial = results[g.id];
+        const p = calcPoints(palpite, oficial);
+        const hasPalpite = palpite && palpite.h!=='' && palpite.a!=='';
+        const hasResult  = oficial  && oficial.h !=='' && oficial.a!=='';
+ 
+        let icon, ptsCls, ptsLbl, resultTxt='';
+        if(p===3){icon='⚡';ptsCls='exact';ptsLbl='+3'}
+        else if(p===1.5){icon='✓';ptsCls='partial';ptsLbl='+1.5'}
+        else if(p===0){icon='✗';ptsCls='miss';ptsLbl='0'}
+        else if(!hasPalpite){icon='—';ptsCls='miss';ptsLbl='—'}
+        else{icon='⏳';ptsCls='pending';ptsLbl='...'}
+ 
+        if(hasResult) resultTxt = `Oficial: ${g.h.f}${oficial.h}×${oficial.a}${g.a.f}`;
+ 
+        rows.push(`<div class="detail-match">
+          <div class="dm-icon">${icon}</div>
+          <div style="flex:1;min-width:0">
+            <div class="dm-teams">${g.h.f} ${g.h.n} × ${g.a.f} ${g.a.n}</div>
+            <div class="dm-palpite">${hasPalpite?`Palpite: ${palpite.h}×${palpite.a}`:'Sem palpite'}</div>
+            ${resultTxt?`<div class="dm-result" style="color:var(--teal);font-size:.7rem">${resultTxt}</div>`:''}
+          </div>
+          <div class="dm-pts ${ptsCls}">${ptsLbl}</div>
+        </div>`);
+      });
+    });
+  });
+ 
+  lst.innerHTML = rows.join('');
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({behavior:'smooth', block:'start'});
+}
+ 
+function closeRankingDetail(){
+  document.getElementById('ranking-detail-wrap').style.display='none';
+}
+ 
+/* ═══════════════════════════════════════════════════════
+   PAINEL ADMIN — INSERIR RESULTADOS OFICIAIS
+═══════════════════════════════════════════════════════ */
+let adminGroupOpen = false;
+ 
+function toggleAdminResults(){
+  const panel = document.getElementById('admin-results-panel');
+  adminGroupOpen = !adminGroupOpen;
+  panel.style.display = adminGroupOpen ? 'block' : 'none';
+  if(adminGroupOpen) populateAdminGroupSelect();
+}
+ 
+/* Ativa o modo admin com senha */
+function activateAdmin(){
+  const pw = prompt('Senha do administrador:');
+  if(!pw) return;
+  if(hashPw(pw)===ADMIN_PW_HASH){
+    localStorage.setItem('bolao_admin','1');
+    document.getElementById('btn-admin-results').style.display='block';
+    toast('✔ Modo admin ativado!','ok');
+  } else {
+    toast('❌ Senha incorreta','err');
+  }
+}
+ 
+/* Clique triplo no título do ranking ativa o admin */
+let adminTapCount=0, adminTapTimer=null;
+document.addEventListener('DOMContentLoaded',()=>{
+  const rtitle = document.querySelector('.ranking-title');
+  if(rtitle){
+    rtitle.addEventListener('click',()=>{
+      adminTapCount++;
+      clearTimeout(adminTapTimer);
+      adminTapTimer=setTimeout(()=>adminTapCount=0, 800);
+      if(adminTapCount>=5){adminTapCount=0;activateAdmin();}
+    });
+  }
+});
+ 
+function populateAdminGroupSelect(){
+  const sel = document.getElementById('admin-group-sel');
+  if(!sel || sel.options.length > 1) return;
+  Object.keys(GROUPS).forEach(letter=>{
+    const opt = document.createElement('option');
+    opt.value = letter;
+    opt.textContent = `Grupo ${letter}`;
+    sel.appendChild(opt);
+  });
+}
+ 
+function renderAdminGames(){
+  const letter = document.getElementById('admin-group-sel').value;
+  const container = document.getElementById('admin-games-list');
+  if(!letter){container.innerHTML='';return;}
+ 
+  const results = getOfficialResults();
+  const rounds  = MATCHES[letter];
+ 
+  let html = '';
+  rounds.forEach(rd=>{
+    html += `<div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:var(--gold);padding:.6rem .3rem .2rem;letter-spacing:.05em">RODADA ${rd.r}</div>`;
+    rd.games.forEach(g=>{
+      const of = results[g.id];
+      const hv = of ? of.h : '';
+      const av = of ? of.a : '';
+      const savedMark = (hv!==''&&av!=='')?`<span class="agr-saved">✔ salvo</span>`:'';
+      html+=`<div class="admin-game-row">
+        <div style="flex:1;min-width:140px">
+          <div class="agr-teams">${g.h.f} ${g.h.n} × ${g.a.f} ${g.a.n}</div>
+          <div class="agr-date">${g.dt} · ${g.tm}</div>
+        </div>
+        <div class="agr-score">
+          <input class="agr-sin" type="number" min="0" max="30" id="of-h-${g.id}" value="${hv}" placeholder="—">
+          <span class="agr-sep">×</span>
+          <input class="agr-sin" type="number" min="0" max="30" id="of-a-${g.id}" value="${av}" placeholder="—">
+          <button class="btn-save-result" onclick="saveOfficialGameResult('${g.id}')">Salvar</button>
+          ${savedMark}
+        </div>
+      </div>`;
+    });
+  });
+ 
+  container.innerHTML = html;
+}
+ 
+function saveOfficialGameResult(matchId){
+  const h = document.getElementById(`of-h-${matchId}`).value;
+  const a = document.getElementById(`of-a-${matchId}`).value;
+  if(h===''||a===''){toast('⚠ Preencha os dois placares!','err');return;}
+  saveOfficialResult(matchId, h, a);
+  renderAdminGames(); // re-render para mostrar ✔
+  renderRanking();
+  toast('✔ Resultado salvo!','ok');
+}
+ 
+/* ── Também sincroniza resultados oficiais no Google Sheets (opcional) ── */
+async function syncOfficialResults(){
+  if(!GOOGLE_SCRIPT_URL) return;
+  const results = getOfficialResults();
+  try{
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'save_official_results', results})
+    });
+  } catch(e){ console.warn('[Bolão] Não foi possível sincronizar resultados oficiais:', e.message); }
 }
