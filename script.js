@@ -43,7 +43,7 @@
       Tipo: App da Web | Acesso: Qualquer pessoa
    4. Copie a URL e cole em GOOGLE_SCRIPT_URL abaixo.
 ═══════════════════════════════════════════════════════ */
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9d5o6av_Z3VxwvZ4qbLom0uaRgzp2mBbciQuCKzwI3KoxdmBK6fNoRkEUZHzF42TdTQ/exec'; // ← URL do Apps Script
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfCRnqBItqDumAQUMHiyLHOiacaiYSJsPYe2viMiG2udlM-dnNNs_mKVxGatIq1QtK3g/exec'; // ← URL do Apps Script
 
 /* ═══════════════════════════════════════════════════════
    CONFIG
@@ -905,10 +905,28 @@ const RESULTS_KEY = 'bolao2026_results';
 const ADMIN_PW_HASH = hashPw('admin123'); // padrão: admin123
  
 function getOfficialResults(){return JSON.parse(localStorage.getItem(RESULTS_KEY)||'{}')}
-function saveOfficialResult(matchId, h, a){
-  const r = getOfficialResults();
-  r[matchId] = {h: String(h), a: String(a)};
-  localStorage.setItem(RESULTS_KEY, JSON.stringify(r));
+async function saveOfficialResult(matchId, h, a){
+  // 1. Salva localmente (como você já fazia)
+  g_officialResults[matchId] = {h, a};
+  localStorage.setItem('wc26_official', JSON.stringify(g_officialResults));
+
+  // 2. Envia para a planilha do Google
+  if (!GOOGLE_SCRIPT_URL) return;
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'save_official',
+        match_id: matchId,
+        score_home: h,
+        score_away: a
+      })
+    });
+  } catch (error) {
+    console.error("Erro ao sincronizar resultado oficial:", error);
+  }
 }
  
 /* ── Calcula pontos de um usuário para um jogo ── */
