@@ -1,47 +1,82 @@
 /* ═══════════════════════════════════════════════════════
    BACKEND — GOOGLE APPS SCRIPT
    ───────────────────────────────────────────────────────
-   COMO CONFIGURAR (5 minutos):
-   1. Acesse: https://sheets.new  → crie uma planilha
-   2. Menu Extensões → Apps Script → cole o código abaixo:
+   Código atualizado do Apps Script com suporte a usuários, 
+   palpites e painel admin:
    ─────────────────────────────────────────────────────────
    function doPost(e) {
-     const data = JSON.parse(e.postData.contents);
-     const sheet = SpreadsheetApp.getActiveSpreadsheet()
-       .getSheetByName('Palpites') || 
-       SpreadsheetApp.getActiveSpreadsheet().insertSheet('Palpites');
-     
-     if (data.action === 'save_score') {
-       const rows = sheet.getDataRange().getValues();
-       const idx = rows.findIndex(r => r[0]===data.user && r[1]===data.match_id);
-       const row = [data.user, data.match_id, data.score_home, data.score_away, new Date().toISOString()];
-       if (idx > 0) sheet.getRange(idx+1, 1, 1, 5).setValues([row]);
-       else sheet.appendRow(row);
+     try {
+       const data = JSON.parse(e.postData.contents);
+       const ss = SpreadsheetApp.getActiveSpreadsheet();
+       
+       const LOCK_DATE = new Date('2026-06-20T23:59:59-03:00'); 
+       if (data.action === 'save_score' && new Date() > LOCK_DATE) {
+         return ContentService.createTextOutput(JSON.stringify({ ok: false, error: "Tempo esgotado!" })).setMimeType(ContentService.MimeType.JSON);
+       }
+
+       if (data.action === 'login') {
+         const sheetUsers = ss.getSheetByName('Usuarios') || ss.insertSheet('Usuarios');
+         const usersData = sheetUsers.getDataRange().getValues();
+         const userRow = usersData.find(r => r[0] === data.user);
+         if (!userRow) sheetUsers.appendRow([data.user, data.passHash, new Date().toISOString()]);
+         return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+       }
+
+       if (data.action === 'save_score') {
+         const sheetPalpites = ss.getSheetByName('Palpites') || ss.insertSheet('Palpites');
+         const rows = sheetPalpites.getDataRange().getValues();
+         const idx = rows.findIndex(r => r[0] === data.user && r[1] === data.match_id);
+         const row = [data.user, data.match_id, data.score_home, data.score_away, new Date().toISOString()];
+         if (idx !== -1) sheetPalpites.getRange(idx + 1, 1, 1, 5).setValues([row]);
+         else sheetPalpites.appendRow(row);
+         return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+       }
+
+       if (data.action === 'save_official') {
+         const sheetOficiais = ss.getSheetByName('ResultadosOficiais') || ss.insertSheet('ResultadosOficiais');
+         const rows = sheetOficiais.getDataRange().getValues();
+         const idx = rows.findIndex(r => r[0] === data.match_id);
+         const row = [data.match_id, data.score_home, data.score_away, new Date().toISOString()];
+         if (idx !== -1) sheetOficiais.getRange(idx + 1, 1, 1, 4).setValues([row]);
+         else sheetOficiais.appendRow(row);
+         return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+       }
+       return ContentService.createTextOutput(JSON.stringify({ ok: false })).setMimeType(ContentService.MimeType.JSON);
+     } catch (error) {
+       return ContentService.createTextOutput(JSON.stringify({ ok: false, error: error.message })).setMimeType(ContentService.MimeType.JSON);
      }
-     
-     return ContentService
-       .createTextOutput(JSON.stringify({ok:true}))
-       .setMimeType(ContentService.MimeType.JSON);
    }
    
    function doGet(e) {
-     const sheet = SpreadsheetApp.getActiveSpreadsheet()
-       .getSheetByName('Palpites');
-     if (!sheet) return ContentService.createTextOutput('{}');
-     const [, ...rows] = sheet.getDataRange().getValues();
-     const scores = {};
-     rows.forEach(([user, match_id, h, a]) => {
-       if (!scores[user]) scores[user] = {};
-       scores[user][match_id] = { h: String(h), a: String(a) };
-     });
-     return ContentService
-       .createTextOutput(JSON.stringify(scores))
-       .setMimeType(ContentService.MimeType.JSON);
+     try {
+       const ss = SpreadsheetApp.getActiveSpreadsheet();
+       const sheetPalpites = ss.getSheetByName('Palpites');
+       const scores = {};
+       if (sheetPalpites) {
+         const dataPalpites = sheetPalpites.getDataRange().getValues();
+         if (dataPalpites.length > 1) {
+           const [, ...rowsPalpites] = dataPalpites;
+           rowsPalpites.forEach(([user, match_id, h, a]) => {
+             if (!user) return; 
+             if (!scores[user]) scores[user] = {};
+             scores[user][match_id] = { h: String(h), a: String(a) };
+           });
+         }
+       }
+       const sheetOficiais = ss.getSheetByName('ResultadosOficiais');
+       const oficiais = {};
+       if (sheetOficiais) {
+         const dataOficiais = sheetOficiais.getDataRange().getValues();
+         if (dataOficiais.length > 0) {
+           dataOficiais.forEach(([match_id, h, a]) => {
+             if (!match_id) return;
+             oficiais[match_id] = { h: String(h), a: String(a) };
+           });
+         }
+       }
+       return ContentService.createTextOutput(JSON.stringify({ palpites: scores, oficiais: oficiais })).setMimeType(ContentService.MimeType.JSON);
+     } catch (error) { return ContentService.createTextOutput(JSON.stringify({ error: error.message })).setMimeType(ContentService.MimeType.JSON); }
    }
-   ─────────────────────────────────────────────────────────
-   3. Clique em "Implantar" → "Nova implantação"
-      Tipo: App da Web | Acesso: Qualquer pessoa
-   4. Copie a URL e cole em GOOGLE_SCRIPT_URL abaixo.
 ═══════════════════════════════════════════════════════ */
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfCRnqBItqDumAQUMHiyLHOiacaiYSJsPYe2viMiG2udlM-dnNNs_mKVxGatIq1QtK3g/exec'; // ← URL do Apps Script
 
@@ -333,8 +368,7 @@ async function processQueue() {
     try {
       await fetch(GOOGLE_SCRIPT_URL, {
         method:'POST',
-        mode:'no-cors',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        headers:{'Content-Type':'text/plain;charset=utf-8'}, // 🔴 CORS Ajustado
         body:JSON.stringify(q[i])
       });
       q.splice(i, 1);
@@ -369,15 +403,29 @@ async function loadFromCloud() {
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL + '?action=get_scores');
     if (!res.ok) return;
-    const cloudScores = await res.json();
-    // Mescla com local — cloud vence conflitos
-    const local = getScores();
-    const merged = {...local};
-    Object.entries(cloudScores).forEach(([user, games]) => {
-      if (!merged[user]) merged[user] = {};
-      Object.assign(merged[user], games);
-    });
-    saveScores(merged);
+    const cloudData = await res.json();
+    
+    // Mescla palpites do cloud
+    if(cloudData.palpites){
+      const local = getScores();
+      const merged = {...local};
+      Object.entries(cloudData.palpites).forEach(([user, games]) => {
+        if (!merged[user]) merged[user] = {};
+        Object.assign(merged[user], games);
+      });
+      saveScores(merged);
+    }
+
+    // Mescla Resultados Oficiais do cloud
+    if(cloudData.oficiais){
+      const localOff = getOfficialResults();
+      const mergedOff = {...localOff};
+      Object.entries(cloudData.oficiais).forEach(([matchId, score]) => {
+        mergedOff[matchId] = score;
+      });
+      localStorage.setItem(RESULTS_KEY, JSON.stringify(mergedOff));
+    }
+
     renderPlayersLogin();
     if (S.user) renderGroupsGrid && renderGroupsGrid();
   } catch(e) {
@@ -395,6 +443,20 @@ function togglePw(inputId,btnId){
   const btn=document.getElementById(btnId);
   if(el.type==='password'){el.type='text';btn.textContent='🙈';}
   else{el.type='password';btn.textContent='👁';}
+}
+
+// 🔴 NOVA FUNÇÃO PARA ENVIAR O LOGIN PRO GOOGLE SHEETS
+async function syncLoginToCloud(username, passHash) {
+  if (!GOOGLE_SCRIPT_URL) return;
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'login', user: username, passHash: passHash })
+    });
+  } catch (error) {
+    console.error("Erro ao sincronizar usuário no cloud:", error);
+  }
 }
  
 function doLogin(){
@@ -418,6 +480,10 @@ function doLogin(){
     saveUsers(users);
     info.textContent='Cadastro realizado! Bem-vindo, '+name+'! 🎉';
   }
+
+  // Sincroniza usuário com o Backend
+  syncLoginToCloud(name, hash);
+
   S.user=name;
   saveSession(name);
   setTimeout(()=>showGroups(),500);
@@ -601,7 +667,6 @@ function renderTrail(){
     const stKey=rd.games[0].st;
     const imgSrc=STIMG[stKey]||'';
  
-    // MELHORIA UX: Card inteiro clicável, abre a rodada diretamente
     return`<div class="trail-step${isRight?' right':''}" style="--c:${c}">
       ${!isRight?`<div class="tnode ${nClass}" style="border-color:${c}">${nl}</div>`:''}
       <div class="tcard ${cClass}" 
@@ -623,7 +688,6 @@ function renderTrail(){
   document.getElementById('btn-act').textContent=`▶ PREENCHER RODADA ${S.round}`;
 }
  
-// NOVO: abre a rodada clicando no card — mesma ação do botão
 function openRoundFromTrail(roundIndex) {
   S.round = roundIndex + 1;
   enterRound();
@@ -730,30 +794,22 @@ function saveGame(id,gi,silent=false){
    POPUP "VAMOS CONTINUAR?" — lógica central
 ═══════════════════════════════════════════════════════ */
 function checkAuto(){
-  // Cancela qualquer timer pendente antes de avaliar
   clearTimeout(autoPopupTimer);
- 
   const rd = S.rounds[S.round-1];
   const roundDone = rd.games.every(g=>{const s=getSc(S.user,g.id);return s&&s.h!==''&&s.a!==''});
- 
-  if (!roundDone) return; // rodada ainda incompleta
+  if (!roundDone) return;
  
   const isLastRound = S.round >= S.rounds.length;
  
   if (!isLastRound) {
-    // ── Caso 1: Rodada completa, ainda tem próxima rodada ──
     autoPopupTimer = setTimeout(() => {
       showContinuePopup('round');
     }, POPUP_DELAY_MS);
- 
   } else {
-    // ── Última rodada — verifica se o grupo todo está completo ──
     const groupAllDone = S.rounds.every((_,i)=>rdDone(i));
- 
     if (groupAllDone) {
       const keys = Object.keys(GROUPS);
       const isLastGroup = S.group === keys[keys.length - 1];
- 
       autoPopupTimer = setTimeout(() => {
         showContinuePopup(isLastGroup ? 'finish' : 'group');
       }, POPUP_DELAY_MS);
@@ -770,7 +826,6 @@ function showContinuePopup(mode) {
   const sub      = document.getElementById('continue-sub');
   const ctaText  = document.getElementById('continue-cta-text');
  
-  // Configura conteúdo conforme o modo
   modal.classList.remove('next-group');
  
   if (mode === 'round') {
@@ -812,12 +867,9 @@ function closeContinue() {
   clearTimeout(autoPopupTimer);
 }
  
-// Fecha ao clicar fora do modal
 document.getElementById('continue-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeContinue();
 });
- 
-// Fecha com Esc
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeContinue();
 });
@@ -893,31 +945,25 @@ function toast(msg,type='ok'){
  
 /* ═══════════════════════════════════════════════════════
    RANKING & RESULTADOS OFICIAIS
-   ────────────────────────────────────────────────────────
-   Sistema de pontuação:
-   • 3 pts  → placar exato correto
-   • 1.5 pts → resultado correto (vitória/empate) mas placar errado
-   • 0 pts  → errou o resultado
 ═══════════════════════════════════════════════════════ */
- 
-/* Armazena resultados oficiais separado dos palpites */
 const RESULTS_KEY = 'bolao2026_results';
-/* Senha admin — altere aqui para proteger o painel */
-const ADMIN_PW_HASH = hashPw('admin123'); // padrão: admin123
+const ADMIN_PW_HASH = hashPw('admin123'); // senha padrão para testes
  
 function getOfficialResults(){return JSON.parse(localStorage.getItem(RESULTS_KEY)||'{}')}
+
+// 🔴 FUNÇÃO CORRIGIDA DO ADMIN 
 async function saveOfficialResult(matchId, h, a){
-  // 1. Salva localmente (como você já fazia)
-  g_officialResults[matchId] = {h, a};
-  localStorage.setItem('wc26_official', JSON.stringify(g_officialResults));
+  // 1. Puxa os resultados oficiais locais corretamente e salva
+  const results = getOfficialResults();
+  results[matchId] = {h, a};
+  localStorage.setItem(RESULTS_KEY, JSON.stringify(results));
 
   // 2. Envia para a planilha do Google
   if (!GOOGLE_SCRIPT_URL) return;
   try {
     await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // 🔴 CORS Ajustado
       body: JSON.stringify({
         action: 'save_official',
         match_id: matchId,
@@ -930,18 +976,15 @@ async function saveOfficialResult(matchId, h, a){
   }
 }
  
-/* ── Calcula pontos de um usuário para um jogo ── */
 function calcPoints(palpite, oficial){
-  if(!palpite || palpite.h==='' || palpite.a==='') return null; // sem palpite
-  if(!oficial  || oficial.h ==='' || oficial.a ==='') return null; // sem resultado
+  if(!palpite || palpite.h==='' || palpite.a==='') return null; 
+  if(!oficial  || oficial.h ==='' || oficial.a ==='') return null; 
  
   const ph=parseInt(palpite.h), pa=parseInt(palpite.a);
   const oh=parseInt(oficial.h),  oa=parseInt(oficial.a);
  
-  // Placar exato
   if(ph===oh && pa===oa) return 3;
  
-  // Resultado certo
   const pRes = ph>pa?'H': ph<pa?'A':'D';
   const oRes = oh>oa?'H': oh<oa?'A':'D';
   if(pRes===oRes) return 1.5;
@@ -949,13 +992,11 @@ function calcPoints(palpite, oficial){
   return 0;
 }
  
-/* ── Compila ranking de todos os usuários ── */
 function buildRanking(){
   const users   = Object.keys(getUsers());
   const results = getOfficialResults();
   const scores  = getScores();
  
-  // Conta quantos jogos têm resultado oficial
   const matchesWithResult = Object.keys(results).length;
  
   const ranking = users.map(user => {
@@ -975,16 +1016,12 @@ function buildRanking(){
     return {user, pts, exact, partial, miss, pending, filled};
   });
  
-  // Ordena por pontos desc, depois por exatos desc, depois por nome
   ranking.sort((a,b)=> b.pts!==a.pts ? b.pts-a.pts : b.exact!==a.exact ? b.exact-a.exact : a.user.localeCompare(b.user));
- 
   return {ranking, matchesWithResult};
 }
  
-/* ── Tela Ranking ── */
 function showRanking(){
   show('s-ranking');
-  // Mostra botão admin só se já tem senha configurada no localStorage
   const isAdmin = localStorage.getItem('bolao_admin')==='1';
   document.getElementById('btn-admin-results').style.display = isAdmin ? 'block' : 'none';
   renderRanking();
@@ -1040,7 +1077,6 @@ function renderRanking(){
   }).join('');
 }
  
-/* ── Detalhe de um usuário ── */
 function showUserDetail(user){
   const results = getOfficialResults();
   const scores  = getScores();
@@ -1103,7 +1139,6 @@ function toggleAdminResults(){
   if(adminGroupOpen) populateAdminGroupSelect();
 }
  
-/* Ativa o modo admin com senha */
 function activateAdmin(){
   const pw = prompt('Senha do administrador:');
   if(!pw) return;
@@ -1116,7 +1151,6 @@ function activateAdmin(){
   }
 }
  
-/* Clique triplo no título do ranking ativa o admin */
 let adminTapCount=0, adminTapTimer=null;
 document.addEventListener('DOMContentLoaded',()=>{
   const rtitle = document.querySelector('.ranking-title');
@@ -1181,21 +1215,7 @@ function saveOfficialGameResult(matchId){
   const a = document.getElementById(`of-a-${matchId}`).value;
   if(h===''||a===''){toast('⚠ Preencha os dois placares!','err');return;}
   saveOfficialResult(matchId, h, a);
-  renderAdminGames(); // re-render para mostrar ✔
+  renderAdminGames(); 
   renderRanking();
   toast('✔ Resultado salvo!','ok');
-}
- 
-/* ── Também sincroniza resultados oficiais no Google Sheets (opcional) ── */
-async function syncOfficialResults(){
-  if(!GOOGLE_SCRIPT_URL) return;
-  const results = getOfficialResults();
-  try{
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({action:'save_official_results', results})
-    });
-  } catch(e){ console.warn('[Bolão] Não foi possível sincronizar resultados oficiais:', e.message); }
 }
