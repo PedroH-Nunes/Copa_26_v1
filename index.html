@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Bolão Copa do Mundo 2026 🏆</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -40,6 +40,51 @@
   </div>
 </div>
 
+<!-- ═══════════════ RANKING ═══════════════ -->
+<div id="s-ranking" class="screen">
+  <div class="topbar">
+    <button class="btn-back" onclick="showGroups()">← Grupos</button>
+    <div class="topbar-logo">🏆 RANKING</div>
+    <button class="btn-sm" id="btn-admin-results" onclick="toggleAdminResults()" style="display:none">⚙ Resultados</button>
+  </div>
+
+  <!-- Painel Admin: inserir resultados oficiais -->
+  <div id="admin-results-panel" style="display:none">
+    <div class="admin-panel">
+      <div class="admin-title">⚙ PAINEL ADMIN — Resultados Oficiais</div>
+      <div class="admin-sub">Insira os resultados reais dos jogos para calcular pontos</div>
+      <div class="admin-filter">
+        <select id="admin-group-sel" onchange="renderAdminGames()" class="finput" style="max-width:200px;margin:0 auto;display:block">
+          <option value="">Selecione o Grupo</option>
+        </select>
+      </div>
+      <div id="admin-games-list"></div>
+    </div>
+  </div>
+
+  <!-- Ranking principal -->
+  <div class="ranking-wrap">
+    <div class="ranking-header">
+      <div class="ranking-title">CLASSIFICAÇÃO</div>
+      <div class="ranking-sub" id="ranking-matches-info">— jogos com resultado</div>
+    </div>
+
+    <div class="ranking-legend">
+      <span class="leg-item exact">● Placar exato = 3 pts</span>
+      <span class="leg-item partial">● Resultado certo = 1,5 pts</span>
+      <span class="leg-item miss">● Errou = 0 pts</span>
+    </div>
+
+    <div id="ranking-list"></div>
+
+    <div class="ranking-detail-wrap" id="ranking-detail-wrap" style="display:none">
+      <div class="rd-title" id="rd-title">Detalhes de —</div>
+      <div id="ranking-detail-list"></div>
+      <button class="btn-sm" onclick="closeRankingDetail()" style="margin:1rem auto;display:block">Fechar ✕</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ GRUPOS ═══════════════ -->
 <div id="s-groups" class="screen">
   <div class="topbar">
@@ -51,8 +96,11 @@
     <div id="lock-chip-g" class="lock-chip" style="display:none">🔒 BLOQUEADO</div>
     <button class="btn-sm" onclick="doLogout()">Sair</button>
   </div>
+  <div class="topbar-row2">
+    <button class="btn-ranking" onclick="showRanking()">🏆 Ver Ranking</button>
+  </div>
   <div class="s-head">ESCOLHA UM GRUPO</div>
-  <div class="s-sub">Preencha seus palpites antes de 10/06/2026</div>
+  <div class="s-sub">Preencha seus palpites antes de 11/06/2026</div>
   <div class="global-prog-wrap">
     <div class="global-prog-label" id="global-prog-label">0 / 0 palpites</div>
     <div class="prog-bar-outer"><div class="prog-bar-inner" id="global-prog-fill" style="width:0%"></div></div>
@@ -84,7 +132,7 @@
     <span class="gtag" id="rtag">Rodada 1</span>
     <div class="games-title" id="rtitle">Grupo A — Rodada 1</div>
   </div>
-  <div class="lock-notice" id="ln-gm">🔒 Prazo encerrado em 10/06/2026. Edições bloqueadas.</div>
+  <div class="lock-notice" id="ln-gm">🔒 Prazo encerrado em 11/06/2026. Edições bloqueadas.</div>
   <div class="games-prog">
     <div class="label"><span id="pglbl">0/0 salvos</span><span id="pg-pct">0%</span></div>
     <div class="prog-bar-outer"><div class="prog-bar-inner" id="pgfill" style="width:0%"></div></div>
