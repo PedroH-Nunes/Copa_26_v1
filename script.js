@@ -333,7 +333,8 @@ async function processQueue() {
     try {
       await fetch(GOOGLE_SCRIPT_URL, {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
+        mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
         body:JSON.stringify(q[i])
       });
       q.splice(i, 1);
@@ -916,7 +917,7 @@ async function saveOfficialResult(matchId, h, a){
     await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'save_official',
         match_id: matchId,
@@ -1192,7 +1193,8 @@ async function syncOfficialResults(){
   try{
     await fetch(GOOGLE_SCRIPT_URL, {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({action:'save_official_results', results})
     });
   } catch(e){ console.warn('[Bolão] Não foi possível sincronizar resultados oficiais:', e.message); }
