@@ -2,18 +2,13 @@
    BACKEND — GOOGLE APPS SCRIPT
    ───────────────────────────────────────────────────────
    Código atualizado do Apps Script com suporte a usuários, 
-   palpites e painel admin:
+   palpites, painel admin e sem trava global:
    ─────────────────────────────────────────────────────────
    function doPost(e) {
      try {
        const data = JSON.parse(e.postData.contents);
        const ss = SpreadsheetApp.getActiveSpreadsheet();
        
-       const LOCK_DATE = new Date('2026-06-20T23:59:59-03:00'); 
-       if (data.action === 'save_score' && new Date() > LOCK_DATE) {
-         return ContentService.createTextOutput(JSON.stringify({ ok: false, error: "Tempo esgotado!" })).setMimeType(ContentService.MimeType.JSON);
-       }
-
        if (data.action === 'login') {
          const sheetUsers = ss.getSheetByName('Usuarios') || ss.insertSheet('Usuarios');
          const usersData = sheetUsers.getDataRange().getValues();
@@ -50,6 +45,7 @@
    function doGet(e) {
      try {
        const ss = SpreadsheetApp.getActiveSpreadsheet();
+       
        const sheetPalpites = ss.getSheetByName('Palpites');
        const scores = {};
        if (sheetPalpites) {
@@ -63,6 +59,7 @@
            });
          }
        }
+       
        const sheetOficiais = ss.getSheetByName('ResultadosOficiais');
        const oficiais = {};
        if (sheetOficiais) {
@@ -74,21 +71,36 @@
            });
          }
        }
-       return ContentService.createTextOutput(JSON.stringify({ palpites: scores, oficiais: oficiais })).setMimeType(ContentService.MimeType.JSON);
+
+       const sheetUsers = ss.getSheetByName('Usuarios');
+       const usuarios = [];
+       if (sheetUsers) {
+         const dataUsers = sheetUsers.getDataRange().getValues();
+         dataUsers.forEach((r, i) => { 
+           if(i > 0 && r[0]) usuarios.push(r[0]); 
+           else if (i === 0 && r[0] !== 'Nome' && r[0]) usuarios.push(r[0]); 
+         });
+       }
+
+       return ContentService.createTextOutput(JSON.stringify({ 
+         palpites: scores, 
+         oficiais: oficiais,
+         usuarios: [...new Set(usuarios)]
+       })).setMimeType(ContentService.MimeType.JSON);
      } catch (error) { return ContentService.createTextOutput(JSON.stringify({ error: error.message })).setMimeType(ContentService.MimeType.JSON); }
    }
 ═══════════════════════════════════════════════════════ */
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfCRnqBItqDumAQUMHiyLHOiacaiYSJsPYe2viMiG2udlM-dnNNs_mKVxGatIq1QtK3g/exec'; // ← URL do Apps Script
 
 /* ═══════════════════════════════════════════════════════
-   CONFIG
+   CONFIG & ESTADO NA NUVEM
 ═══════════════════════════════════════════════════════ */
-const LOCK_DATE   = new Date('2026-06-11T23:59:59-03:00');
 const STORAGE_KEY = 'bolao2026_v1';
- 
-// Delay em ms antes de abrir o popup após completar rodada
 const POPUP_DELAY_MS = 3000;
- 
+
+let cloudState = { scores: {}, oficiais: {}, usuarios: [] };
+let cloudLoaded = false;
+
 /* ═══════════════════════════════════════════════════════
    GROUPS & GAMES DATA
 ═══════════════════════════════════════════════════════ */
@@ -309,6 +321,22 @@ let autoPopupTimer = null;    // timer do popup de 3s
 let popupMode = null;         // 'round' | 'group' | 'finish'
 let syncQueue = [];           // fila de sincronização offline
 let isSyncing = false;
+
+// Helpers de Tempo (Verifica Bloqueio Individual por Jogo)
+const MON_MAP = { Jan:1, Fev:2, Mar:3, Abr:4, Mai:5, Jun:6, Jul:7, Ago:8, Set:9, Out:10, Nov:11, Dez:12 };
+
+function gameKickoff(g) {
+  const parts = g.dt.split('/');           
+  const day   = parts[0].padStart(2,'0');
+  const mon   = parts[1].split(' ')[0];    
+  const month = String(MON_MAP[mon] || 6).padStart(2,'0');
+  const hour  = String(parseInt(g.tm)).padStart(2,'0');
+  return new Date(`2026-${month}-${day}T${hour}:00:00-03:00`);
+}
+
+function gameIsLocked(g) {
+  return new Date() >= gameKickoff(g);
+}
  
 /* ═══════════════════════════════════════════════════════
    STORAGE LOCAL (offline-safe, instantâneo)
@@ -397,47 +425,49 @@ window.addEventListener('online', () => {
   processQueue();
 });
  
-// Ao carregar a página, carrega dados do cloud e mescla
+// Nova Função de Carregamento Focada na Nuvem como Verdade
 async function loadFromCloud() {
   if (!GOOGLE_SCRIPT_URL) return;
   try {
-    const res = await fetch(GOOGLE_SCRIPT_URL + '?action=get_scores');
+    const res = await fetch(GOOGLE_SCRIPT_URL + '?action=get_scores&t=' + Date.now());
     if (!res.ok) return;
-    const cloudData = await res.json();
+    const data = await res.json();
     
-    // Mescla palpites do cloud
-    if(cloudData.palpites){
-      const local = getScores();
-      const merged = {...local};
-      Object.entries(cloudData.palpites).forEach(([user, games]) => {
-        if (!merged[user]) merged[user] = {};
-        Object.assign(merged[user], games);
-      });
-      saveScores(merged);
+    // Atualiza estado em memória (Fonte de verdade)
+    if (data.palpites) cloudState.scores   = data.palpites;
+    if (data.oficiais) cloudState.oficiais = data.oficiais;
+    if (data.usuarios) cloudState.usuarios = data.usuarios;
+
+    // Sincroniza localmente para backup/offline da sessão ativa
+    if (data.palpites && S.user && data.palpites[S.user]) {
+      const sc = getScores();
+      sc[S.user] = { ...(sc[S.user] || {}), ...data.palpites[S.user] };
+      saveScores(sc);
+    }
+    if (data.oficiais) {
+      localStorage.setItem(RESULTS_KEY, JSON.stringify(data.oficiais));
     }
 
-    // Mescla Resultados Oficiais do cloud
-    if(cloudData.oficiais){
-      const localOff = getOfficialResults();
-      const mergedOff = {...localOff};
-      Object.entries(cloudData.oficiais).forEach(([matchId, score]) => {
-        mergedOff[matchId] = score;
-      });
-      localStorage.setItem(RESULTS_KEY, JSON.stringify(mergedOff));
-    }
-
+    cloudLoaded = true;
     renderPlayersLogin();
-    if (S.user) renderGroupsGrid && renderGroupsGrid();
+    
+    const rEl = document.getElementById('s-ranking');
+    if (rEl && rEl.classList.contains('active')) renderRanking();
+    
+    const gEl = document.getElementById('s-groups');
+    if (gEl && gEl.classList.contains('active')) renderGroupsGrid();
+    
   } catch(e) {
-    console.warn('[Bolão] Não foi possível carregar dados do cloud:', e.message);
+    console.warn('[Bolão] Cloud offline:', e.message);
   }
 }
+
+// Polling: Mantém tudo atualizado de forma silenciosa e fluida a cada 30 segundos
+setInterval(loadFromCloud, 30000);
  
 /* ═══════════════════════════════════════════════════════
    AUTH
 ═══════════════════════════════════════════════════════ */
-function locked(){return new Date()>LOCK_DATE}
- 
 function togglePw(inputId,btnId){
   const el=document.getElementById(inputId);
   const btn=document.getElementById(btnId);
@@ -503,7 +533,8 @@ function fillName(n){
    SCORES HELPERS
 ═══════════════════════════════════════════════════════ */
 function getSc(user,id){
-  const sc=getScores();
+  // Prefere buscar da nuvem se disponível, senão do local storage
+  const sc = cloudLoaded ? cloudState.scores : getScores();
   return (sc[user]&&sc[user][id]!=null)?sc[user][id]:null;
 }
  
@@ -513,6 +544,10 @@ function saveSc(user,id,h,a){
   if(!sc[user])sc[user]={};
   sc[user][id]={h,a};
   saveScores(sc);
+  
+  // Atualiza também o state em memória de forma síncrona
+  if(!cloudState.scores[user]) cloudState.scores[user] = {};
+  cloudState.scores[user][id] = {h, a};
  
   // 2. Dispara sincronização em background (não bloqueia UI)
   syncToCloud(user, id, h, a);
@@ -591,7 +626,10 @@ function showGroups(){
   const av=S.user?S.user[0].toUpperCase():'?';
   document.getElementById('avatar-g').textContent=av;
   document.getElementById('uname-g').textContent=S.user||'';
-  document.getElementById('lock-chip-g').style.display=locked()?'flex':'none';
+  
+  const lockChip = document.getElementById('lock-chip-g');
+  if(lockChip) lockChip.style.display = 'none';
+
   renderGroupsGrid();
   show('s-groups');
 }
@@ -635,7 +673,10 @@ function openGroup(letter){
  
 function showTrail(){
   document.getElementById('tr-title').textContent=`GRUPO ${S.group}`;
-  document.getElementById('lock-chip-tr').style.display=locked()?'flex':'none';
+  
+  const lockChip = document.getElementById('lock-chip-tr');
+  if(lockChip) lockChip.style.display = 'none';
+  
   renderTrail();
   show('s-trail');
 }
@@ -701,9 +742,12 @@ function selRound(i){
 function enterRound(){
   renderGames();
   show('s-games');
-  const lk=locked();
-  document.getElementById('ln-gm').style.display=lk?'flex':'none';
-  document.getElementById('lock-chip-gm').style.display=lk?'flex':'none';
+  
+  const lnGm = document.getElementById('ln-gm');
+  if(lnGm) lnGm.style.display = 'none';
+  
+  const lcGm = document.getElementById('lock-chip-gm');
+  if(lcGm) lcGm.style.display = 'none';
 }
  
 /* ═══════════════════════════════════════════════════════
@@ -712,19 +756,23 @@ function enterRound(){
 function renderGames(){
   const letter=S.group;
   const rd=S.rounds[S.round-1];
-  const lk=locked();
  
   document.getElementById('gt-title').textContent=`GRUPO ${letter} · R${S.round}`;
   document.getElementById('rtag').textContent=`Rodada ${S.round}`;
   document.getElementById('rtitle').textContent=`Grupo ${letter} — Rodada ${S.round}`;
  
   const list=document.getElementById('glist');
+  
   list.innerHTML=rd.games.map((g,gi)=>{
     const id=g.id;
-    const sc=getSc(S.user,id);
+    // O bloqueio agora é individual
+    const lk = gameIsLocked(g);
+    
+    const sc = getSc(S.user, id);
     const hv=sc?sc.h:'';
     const av=sc?sc.a:'';
     const saved=hv!==''&&av!=='';
+    
     return`<div class="game-card${saved?' saved':''}" id="gc-${id}">
       <div class="meta-row">
         <span class="mtag">📅 ${g.dt}</span>
@@ -766,9 +814,14 @@ function onInput(id){
 }
  
 function saveGame(id,gi,silent=false){
+  // Checagem extra de segurança no momento do clique
+  const g = S.rounds[S.round-1].games.find(x => x.id === id);
+  if (g && gameIsLocked(g)) { toast('🔒 Jogo já iniciado! Não é possível alterar.', 'err'); return; }
+
   const h=document.getElementById(`h-${id}`).value.trim();
   const a=document.getElementById(`a-${id}`).value.trim();
   const al=document.getElementById(`al-${id}`);
+  
   if(h===''||a===''){
     al.style.display='block';
     al.style.animation='none';
@@ -776,6 +829,7 @@ function saveGame(id,gi,silent=false){
     setTimeout(()=>al.style.display='none',3500);
     return;
   }
+  
   al.style.display='none';
   saveSc(S.user,id,h,a);
  
@@ -993,26 +1047,36 @@ function calcPoints(palpite, oficial){
 }
  
 function buildRanking(){
-  const users   = Object.keys(getUsers());
-  const results = getOfficialResults();
-  const scores  = getScores();
+  // Centraliza os usuários combinando a Nuvem (Spreadsheet) e Locais
+  const localUsers = Object.keys(getUsers());
+  const allUsers   = [...new Set([...cloudState.usuarios, ...localUsers])].filter(Boolean);
+  
+  // Fontes de verdade agora puxam primariamente do Cloud Loaded
+  const scores  = cloudLoaded ? cloudState.scores : getScores();
+  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
  
   const matchesWithResult = Object.keys(results).length;
  
-  const ranking = users.map(user => {
+  const ranking = allUsers.map(user => {
     let pts=0, exact=0, partial=0, miss=0, pending=0;
+    
     ALL_IDS.forEach(id=>{
       const palpite = scores[user] ? scores[user][id] : null;
       const oficial = results[id];
       const p = calcPoints(palpite, oficial);
-      if(p===null){
-        if(oficial && (!palpite || palpite.h==='' || palpite.a==='')) miss++;
-        else pending++;
-      } else if(p===3){ pts+=3; exact++; }
-      else if(p===1.5){ pts+=1.5; partial++; }
-      else { miss++; }
+      
+      if      (p === 3)   { pts+=3; exact++; }
+      else if (p === 1.5) { pts+=1.5; partial++; }
+      else if (p === 0)   { miss++; }
+      else if (oficial && oficial.h !== '' && oficial.a !== '') { miss++; } // Sem palpite, jogo já com resultado
+      else                { pending++; }
     });
-    const filled = countFilled(user);
+    
+    const filled = ALL_IDS.filter(id => {
+      const s = scores[user]?.[id];
+      return s && s.h !== '' && s.a !== '';
+    }).length;
+    
     return {user, pts, exact, partial, miss, pending, filled};
   });
  
@@ -1078,8 +1142,10 @@ function renderRanking(){
 }
  
 function showUserDetail(user){
-  const results = getOfficialResults();
-  const scores  = getScores();
+  // Usa dados da nuvem se disponível, senão fallback local
+  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
+  const scores  = cloudLoaded ? cloudState.scores : getScores();
+  
   const wrap = document.getElementById('ranking-detail-wrap');
   const ttl  = document.getElementById('rd-title');
   const lst  = document.getElementById('ranking-detail-list');
