@@ -100,6 +100,7 @@ const POPUP_DELAY_MS = 3000;
 
 let cloudState = { scores: {}, oficiais: {}, usuarios: [] };
 let cloudLoaded = false;
+let isFetchingCloud = false; // Trava de carregamento simultâneo
 
 /* ═══════════════════════════════════════════════════════
    GROUPS & GAMES DATA
@@ -414,6 +415,9 @@ async function processQueue() {
   if (getSyncQueue().length === 0) {
     setSyncStatus('synced', '✔ Sincronizado');
     setTimeout(() => setSyncStatus('', ''), 3000);
+    
+    // GATILHO: Assim que terminar de salvar seus dados, já puxa as atualizações de todo mundo
+    loadFromCloud(); 
   } else {
     setSyncStatus('error', '⚠ Sem conexão — salvo localmente');
   }
@@ -427,7 +431,9 @@ window.addEventListener('online', () => {
  
 // Nova Função de Carregamento Focada na Nuvem como Verdade
 async function loadFromCloud() {
-  if (!GOOGLE_SCRIPT_URL) return;
+  if (!GOOGLE_SCRIPT_URL || isFetchingCloud) return;
+  isFetchingCloud = true; // Bloqueia novas chamadas enquanto esta não terminar
+  
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL + '?action=get_scores&t=' + Date.now());
     if (!res.ok) return;
@@ -459,11 +465,25 @@ async function loadFromCloud() {
     
   } catch(e) {
     console.warn('[Bolão] Cloud offline:', e.message);
+  } finally {
+    isFetchingCloud = false; // Libera para a próxima busca
   }
 }
 
-// Polling: Mantém tudo atualizado de forma silenciosa e fluida a cada 30 segundos
-setInterval(loadFromCloud, 30000);
+// 1. Polling mais rápido (10s)
+setInterval(loadFromCloud, 10000);
+
+// 2. MÁGICA DO TEMPO REAL: Atualiza ao focar na aba ou ligar a tela
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') loadFromCloud();
+});
+
+// 3. Sincronização entre abas no mesmo navegador
+window.addEventListener('storage', (e) => {
+  if (e.key === STORAGE_KEY || e.key === RESULTS_KEY) {
+    loadFromCloud();
+  }
+});
  
 /* ═══════════════════════════════════════════════════════
    AUTH
@@ -617,6 +637,12 @@ loadFromCloud();
 function show(id){
   document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));
   window.scrollTo({top:0,behavior:'instant'});
+  
+  // Gatilho visual: Força a atualização dos dados do Google sempre que abrir o Ranking
+  if(id === 's-ranking') {
+    setSyncStatus('syncing', '🔄 Carregando ranking...');
+    loadFromCloud().then(() => setSyncStatus('', ''));
+  }
 }
  
 /* ═══════════════════════════════════════════════════════
@@ -1095,50 +1121,54 @@ function showRanking(){
 function renderRanking(){
   const {ranking, matchesWithResult} = buildRanking();
   const info = document.getElementById('ranking-matches-info');
-  info.textContent = matchesWithResult > 0
-    ? `${matchesWithResult} jogo${matchesWithResult!==1?'s':''} com resultado oficial`
-    : 'Nenhum resultado oficial inserido ainda';
+  if(info){
+      info.textContent = matchesWithResult > 0
+        ? `${matchesWithResult} jogo${matchesWithResult!==1?'s':''} com resultado oficial`
+        : 'Nenhum resultado oficial inserido ainda';
+  }
  
   const list = document.getElementById('ranking-list');
  
   if(!ranking.length){
-    list.innerHTML=`<div class="ranking-empty"><div class="re-icon">👥</div><p>Nenhum participante ainda.</p></div>`;
+    if(list) list.innerHTML=`<div class="ranking-empty"><div class="re-icon">👥</div><p>Nenhum participante ainda.</p></div>`;
     return;
   }
  
   const medals=['🥇','🥈','🥉'];
  
-  list.innerHTML = ranking.map((r,i)=>{
-    const pos = i+1;
-    const posCls = pos===1?'p1':pos===2?'p2':pos===3?'p3':'pN';
-    const cardCls = pos<=3?`rank-${pos}`:'';
-    const medal = medals[i] || '';
-    const pct = ALL_IDS.length ? Math.round(r.filled/ALL_IDS.length*100) : 0;
-    const ptsDisplay = r.pts % 1 === 0 ? r.pts.toString() : r.pts.toFixed(1);
- 
-    return`<div class="rank-card ${cardCls}" onclick="showUserDetail('${r.user.replace(/'/g,"\\'")}')">
-      ${medal?`<div class="rank-medal">${medal}</div>`:''}
-      <div class="rank-row">
-        <div class="rank-pos ${posCls}">${pos}°</div>
-        <div class="rank-avatar">${r.user[0].toUpperCase()}</div>
-        <div class="rank-info">
-          <div class="rank-name">${r.user}</div>
-          <div class="rank-breakdown">
-            <span class="rbd-chip rbd-exact">⚡ ${r.exact} exatos</span>
-            <span class="rbd-chip rbd-partial">✓ ${r.partial} parciais</span>
-            ${r.miss?`<span class="rbd-chip rbd-miss">✗ ${r.miss} erros</span>`:''}
+  if(list){
+      list.innerHTML = ranking.map((r,i)=>{
+        const pos = i+1;
+        const posCls = pos===1?'p1':pos===2?'p2':pos===3?'p3':'pN';
+        const cardCls = pos<=3?`rank-${pos}`:'';
+        const medal = medals[i] || '';
+        const pct = ALL_IDS.length ? Math.round(r.filled/ALL_IDS.length*100) : 0;
+        const ptsDisplay = r.pts % 1 === 0 ? r.pts.toString() : r.pts.toFixed(1);
+     
+        return`<div class="rank-card ${cardCls}" onclick="showUserDetail('${r.user.replace(/'/g,"\\'")}')">
+          ${medal?`<div class="rank-medal">${medal}</div>`:''}
+          <div class="rank-row">
+            <div class="rank-pos ${posCls}">${pos}°</div>
+            <div class="rank-avatar">${r.user[0].toUpperCase()}</div>
+            <div class="rank-info">
+              <div class="rank-name">${r.user}</div>
+              <div class="rank-breakdown">
+                <span class="rbd-chip rbd-exact">⚡ ${r.exact} exatos</span>
+                <span class="rbd-chip rbd-partial">✓ ${r.partial} parciais</span>
+                ${r.miss?`<span class="rbd-chip rbd-miss">✗ ${r.miss} erros</span>`:''}
+              </div>
+              <div class="rank-progress">
+                <div class="rp-bar-outer"><div class="rp-bar-inner" style="width:${pct}%"></div></div>
+              </div>
+            </div>
+            <div class="rank-pts-box">
+              <div class="rank-pts-num">${ptsDisplay}</div>
+              <div class="rank-pts-label">PTS</div>
+            </div>
           </div>
-          <div class="rank-progress">
-            <div class="rp-bar-outer"><div class="rp-bar-inner" style="width:${pct}%"></div></div>
-          </div>
-        </div>
-        <div class="rank-pts-box">
-          <div class="rank-pts-num">${ptsDisplay}</div>
-          <div class="rank-pts-label">PTS</div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+        </div>`;
+      }).join('');
+  }
 }
  
 function showUserDetail(user){
