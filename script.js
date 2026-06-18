@@ -151,8 +151,8 @@ const MATCHES = {
       {id:'A1R2G2',h:{f:'🇨🇿',n:'República Tcheca'},a:{f:'🇿🇦',n:'África do Sul'},dt:'18/Jun (Qui)',tm:'13h',st:'Lumen Field',ci:'Seattle, EUA'},
     ]},
     {r:3,games:[
-      {id:'A1R3G1',h:{f:'🇲🇽',n:'México'},a:{f:'🇨🇿',n:'República Tcheca'},dt:'24/Jun (Qua)',tm:'13h',st:'Estádio Azteca',ci:'Cidade do México, MEX'},
-      {id:'A1R3G2',h:{f:'🇿🇦',n:'África do Sul'},a:{f:'🇰🇷',n:'Coreia do Sul'},dt:'24/Jun (Qua)',tm:'13h',st:'Estádio Akron',ci:'Guadalajara, MEX'},
+      {id:'A1R3G1',h:{f:'🇲🇽',n:'México'},a:{f:'🇨🇿',n:'República Tcheca'},dt:'24/Jun (Qua)',tm:'22h',st:'Estádio Azteca',ci:'Cidade do México, MEX'},
+      {id:'A1R3G2',h:{f:'🇿🇦',n:'África do Sul'},a:{f:'🇰🇷',n:'Coreia do Sul'},dt:'24/Jun (Qua)',tm:'22h',st:'El Gigante de Acero',ci:'Guadalajara, MEX'},
     ]},
   ],
   B:[
@@ -161,12 +161,12 @@ const MATCHES = {
       {id:'B1R1G2',h:{f:'🇶🇦',n:'Catar'},a:{f:'🇨🇭',n:'Suíça'},dt:'13/Jun (Sáb)',tm:'16h',st:"Levi's Stadium",ci:'San Francisco, EUA'},
     ]},
     {r:2,games:[
-      {id:'B1R2G1',h:{f:'🇨🇦',n:'Canadá'},a:{f:'🇶🇦',n:'Catar'},dt:'17/Jun (Qua)',tm:'19h',st:'BC Place',ci:'Vancouver, CAN'},
-      {id:'B1R2G2',h:{f:'🇨🇭',n:'Suíça'},a:{f:'🇧🇦',n:'Bósnia'},dt:'17/Jun (Qua)',tm:'22h',st:'SoFi Stadium',ci:'Los Angeles, EUA'},
+      {id:'B1R2G1',h:{f:'🇨🇦',n:'Canadá'},a:{f:'🇶🇦',n:'Catar'},dt:'18/Jun (Qui)',tm:'19h',st:'BC Place',ci:'Vancouver, CAN'},
+      {id:'B1R2G2',h:{f:'🇨🇭',n:'Suíça'},a:{f:'🇧🇦',n:'Bósnia'},dt:'18/Jun (Qui)',tm:'16h',st:'SoFi Stadium',ci:'Los Angeles, EUA'},
     ]},
     {r:3,games:[
-      {id:'B1R3G1',h:{f:'🇨🇦',n:'Canadá'},a:{f:'🇨🇭',n:'Suíça'},dt:'24/Jun (Qua)',tm:'17h',st:'BMO Field',ci:'Toronto, CAN'},
-      {id:'B1R3G2',h:{f:'🇧🇦',n:'Bósnia'},a:{f:'🇶🇦',n:'Catar'},dt:'24/Jun (Qua)',tm:'17h',st:'BC Place',ci:'Vancouver, CAN'},
+      {id:'B1R3G1',h:{f:'🇨🇦',n:'Canadá'},a:{f:'🇨🇭',n:'Suíça'},dt:'24/Jun (Qua)',tm:'16h',st:'BMO Field',ci:'Toronto, CAN'},
+      {id:'B1R3G2',h:{f:'🇧🇦',n:'Bósnia'},a:{f:'🇶🇦',n:'Catar'},dt:'24/Jun (Qua)',tm:'16h',st:'BC Place',ci:'Vancouver, CAN'},
     ]},
   ],
   C:[
@@ -175,12 +175,12 @@ const MATCHES = {
       {id:'C1R1G2',h:{f:'🇭🇹',n:'Haiti'},a:{f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',n:'Escócia'},dt:'13/Jun (Sáb)',tm:'22h',st:'Gillette Stadium',ci:'Boston, EUA'},
     ]},
     {r:2,games:[
-      {id:'C1R2G1',h:{f:'🇧🇷',n:'Brasil'},a:{f:'🇭🇹',n:'Haiti'},dt:'19/Jun (Sex)',tm:'19h',st:'Camping World Stadium',ci:'Orlando, EUA'},
-      {id:'C1R2G2',h:{f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',n:'Escócia'},a:{f:'🇲🇦',n:'Marrocos'},dt:'19/Jun (Sex)',tm:'22h',st:'Hard Rock Stadium',ci:'Miami, EUA'},
+      {id:'C1R2G1',h:{f:'🇧🇷',n:'Brasil'},a:{f:'🇭🇹',n:'Haiti'},dt:'19/Jun (Sex)',tm:'21h30',st:'Camping World Stadium',ci:'Orlando, EUA'},
+      {id:'C1R2G2',h:{f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',n:'Escócia'},a:{f:'🇲🇦',n:'Marrocos'},dt:'19/Jun (Sex)',tm:'19h',st:'Hard Rock Stadium',ci:'Miami, EUA'},
     ]},
     {r:3,games:[
-      {id:'C1R3G1',h:{f:'🇧🇷',n:'Brasil'},a:{f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',n:'Escócia'},dt:'24/Jun (Qua)',tm:'21h',st:'MetLife Stadium',ci:'Nova York/NJ, EUA'},
-      {id:'C1R3G2',h:{f:'🇲🇦',n:'Marrocos'},a:{f:'🇭🇹',n:'Haiti'},dt:'24/Jun (Qua)',tm:'21h',st:'Gillette Stadium',ci:'Boston, EUA'},
+      {id:'C1R3G1',h:{f:'🇧🇷',n:'Brasil'},a:{f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',n:'Escócia'},dt:'24/Jun (Qua)',tm:'19h',st:'MetLife Stadium',ci:'Nova York/NJ, EUA'},
+      {id:'C1R3G2',h:{f:'🇲🇦',n:'Marrocos'},a:{f:'🇭🇹',n:'Haiti'},dt:'24/Jun (Qua)',tm:'19h',st:'Gillette Stadium',ci:'Boston, EUA'},
     ]},
   ],
   D:[
@@ -189,12 +189,12 @@ const MATCHES = {
       {id:'D1R1G2',h:{f:'🇦🇺',n:'Austrália'},a:{f:'🇹🇷',n:'Turquia'},dt:'14/Jun (Dom)',tm:'01h',st:'BC Place',ci:'Vancouver, CAN'},
     ]},
     {r:2,games:[
-      {id:'D1R2G1',h:{f:'🇺🇸',n:'EUA'},a:{f:'🇦🇺',n:'Austrália'},dt:'16/Jun (Ter)',tm:'22h',st:'Lumen Field',ci:'Seattle, EUA'},
-      {id:'D1R2G2',h:{f:'🇹🇷',n:'Turquia'},a:{f:'🇵🇾',n:'Paraguai'},dt:'17/Jun (Qua)',tm:'13h',st:'Mercedes-Benz Stadium',ci:'Atlanta, EUA'},
+      {id:'D1R2G1',h:{f:'🇺🇸',n:'EUA'},a:{f:'🇦🇺',n:'Austrália'},dt:'19/Jun (Sex)',tm:'16h',st:'Lumen Field',ci:'Seattle, EUA'},
+      {id:'D1R2G2',h:{f:'🇹🇷',n:'Turquia'},a:{f:'🇵🇾',n:'Paraguai'},dt:'20/Jun (Sab)',tm:'00h',st:'Mercedes-Benz Stadium',ci:'Atlanta, EUA'},
     ]},
     {r:3,games:[
-      {id:'D1R3G1',h:{f:'🇺🇸',n:'EUA'},a:{f:'🇹🇷',n:'Turquia'},dt:'25/Jun (Qui)',tm:'13h',st:'SoFi Stadium',ci:'Los Angeles, EUA'},
-      {id:'D1R3G2',h:{f:'🇵🇾',n:'Paraguai'},a:{f:'🇦🇺',n:'Austrália'},dt:'25/Jun (Qui)',tm:'13h',st:'Lumen Field',ci:'Seattle, EUA'},
+      {id:'D1R3G1',h:{f:'🇺🇸',n:'EUA'},a:{f:'🇹🇷',n:'Turquia'},dt:'25/Jun (Qui)',tm:'23h',st:'SoFi Stadium',ci:'Los Angeles, EUA'},
+      {id:'D1R3G2',h:{f:'🇵🇾',n:'Paraguai'},a:{f:'🇦🇺',n:'Austrália'},dt:'25/Jun (Qui)',tm:'23h',st:'Lumen Field',ci:'Seattle, EUA'},
     ]},
   ],
   E:[
@@ -203,8 +203,8 @@ const MATCHES = {
       {id:'E1R1G2',h:{f:'🇨🇮',n:'Costa do Marfim'},a:{f:'🇪🇨',n:'Equador'},dt:'14/Jun (Dom)',tm:'20h',st:'Lincoln Financial Field',ci:'Filadélfia, EUA'},
     ]},
     {r:2,games:[
-      {id:'E1R2G1',h:{f:'🇩🇪',n:'Alemanha'},a:{f:'🇨🇮',n:'Costa do Marfim'},dt:'18/Jun (Qui)',tm:'16h',st:'MetLife Stadium',ci:'Nova York/NJ, EUA'},
-      {id:'E1R2G2',h:{f:'🇪🇨',n:'Equador'},a:{f:'🇨🇼',n:'Curaçao'},dt:'18/Jun (Qui)',tm:'19h',st:'Gillette Stadium',ci:'Boston, EUA'},
+      {id:'E1R2G1',h:{f:'🇩🇪',n:'Alemanha'},a:{f:'🇨🇮',n:'Costa do Marfim'},dt:'20/Jun (Sab)',tm:'17h',st:'MetLife Stadium',ci:'Nova York/NJ, EUA'},
+      {id:'E1R2G2',h:{f:'🇪🇨',n:'Equador'},a:{f:'🇨🇼',n:'Curaçao'},dt:'20/Jun (Sab)',tm:'21h',st:'Gillette Stadium',ci:'Boston, EUA'},
     ]},
     {r:3,games:[
       {id:'E1R3G1',h:{f:'🇩🇪',n:'Alemanha'},a:{f:'🇪🇨',n:'Equador'},dt:'25/Jun (Qui)',tm:'17h',st:'NRG Stadium',ci:'Houston, EUA'},
@@ -217,12 +217,12 @@ const MATCHES = {
       {id:'F1R1G2',h:{f:'🇸🇪',n:'Suécia'},a:{f:'🇹🇳',n:'Tunísia'},dt:'14/Jun (Dom)',tm:'23h',st:'Estadio BBVA',ci:'Monterrey, MEX'},
     ]},
     {r:2,games:[
-      {id:'F1R2G1',h:{f:'🇳🇱',n:'Holanda'},a:{f:'🇸🇪',n:'Suécia'},dt:'18/Jun (Qui)',tm:'22h',st:'Arrowhead Stadium',ci:'Kansas City, EUA'},
-      {id:'F1R2G2',h:{f:'🇹🇳',n:'Tunísia'},a:{f:'🇯🇵',n:'Japão'},dt:'19/Jun (Sex)',tm:'13h',st:'Lincoln Financial Field',ci:'Filadélfia, EUA'},
+      {id:'F1R2G1',h:{f:'🇳🇱',n:'Holanda'},a:{f:'🇸🇪',n:'Suécia'},dt:'20/Jun (Sab)',tm:'14h',st:'Arrowhead Stadium',ci:'Kansas City, EUA'},
+      {id:'F1R2G2',h:{f:'🇹🇳',n:'Tunísia'},a:{f:'🇯🇵',n:'Japão'},dt:'21/Jun (Dom)',tm:'01h',st:'Lincoln Financial Field',ci:'Filadélfia, EUA'},
     ]},
     {r:3,games:[
-      {id:'F1R3G1',h:{f:'🇳🇱',n:'Holanda'},a:{f:'🇹🇳',n:'Tunísia'},dt:'25/Jun (Qui)',tm:'21h',st:'AT&T Stadium',ci:'Dallas, EUA'},
-      {id:'F1R3G2',h:{f:'🇯🇵',n:'Japão'},a:{f:'🇸🇪',n:'Suécia'},dt:'25/Jun (Qui)',tm:'21h',st:'Arrowhead Stadium',ci:'Kansas City, EUA'},
+      {id:'F1R3G1',h:{f:'🇳🇱',n:'Holanda'},a:{f:'🇹🇳',n:'Tunísia'},dt:'25/Jun (Qui)',tm:'20h',st:'AT&T Stadium',ci:'Dallas, EUA'},
+      {id:'F1R3G2',h:{f:'🇯🇵',n:'Japão'},a:{f:'🇸🇪',n:'Suécia'},dt:'25/Jun (Qui)',tm:'20h',st:'Arrowhead Stadium',ci:'Kansas City, EUA'},
     ]},
   ],
   G:[
@@ -231,12 +231,12 @@ const MATCHES = {
       {id:'G1R1G2',h:{f:'🇮🇷',n:'Irã'},a:{f:'🇳🇿',n:'Nova Zelândia'},dt:'15/Jun (Seg)',tm:'22h',st:'SoFi Stadium',ci:'Los Angeles, EUA'},
     ]},
     {r:2,games:[
-      {id:'G1R2G1',h:{f:'🇧🇪',n:'Bélgica'},a:{f:'🇮🇷',n:'Irã'},dt:'19/Jun (Sex)',tm:'16h',st:"Levi's Stadium",ci:'San Francisco, EUA'},
-      {id:'G1R2G2',h:{f:'🇳🇿',n:'Nova Zelândia'},a:{f:'🇪🇬',n:'Egito'},dt:'20/Jun (Sáb)',tm:'16h',st:'BMO Field',ci:'Toronto, CAN'},
+      {id:'G1R2G1',h:{f:'🇧🇪',n:'Bélgica'},a:{f:'🇮🇷',n:'Irã'},dt:'21/Jun (Dom)',tm:'16h',st:"Levi's Stadium",ci:'San Francisco, EUA'},
+      {id:'G1R2G2',h:{f:'🇳🇿',n:'Nova Zelândia'},a:{f:'🇪🇬',n:'Egito'},dt:'21/Jun (Dom)',tm:'22h',st:'BMO Field',ci:'Toronto, CAN'},
     ]},
     {r:3,games:[
-      {id:'G1R3G1',h:{f:'🇧🇪',n:'Bélgica'},a:{f:'🇳🇿',n:'Nova Zelândia'},dt:'26/Jun (Sex)',tm:'13h',st:"Levi's Stadium",ci:'San Francisco, EUA'},
-      {id:'G1R3G2',h:{f:'🇪🇬',n:'Egito'},a:{f:'🇮🇷',n:'Irã'},dt:'26/Jun (Sex)',tm:'13h',st:'Lumen Field',ci:'Seattle, EUA'},
+      {id:'G1R3G1',h:{f:'🇧🇪',n:'Bélgica'},a:{f:'🇳🇿',n:'Nova Zelândia'},dt:'27/Jun (Sab)',tm:'00h',st:"Levi's Stadium",ci:'San Francisco, EUA'},
+      {id:'G1R3G2',h:{f:'🇪🇬',n:'Egito'},a:{f:'🇮🇷',n:'Irã'},dt:'27/Jun (Sab)',tm:'00h',st:'Lumen Field',ci:'Seattle, EUA'},
     ]},
   ],
   H:[
@@ -245,12 +245,12 @@ const MATCHES = {
       {id:'H1R1G2',h:{f:'🇸🇦',n:'Arábia Saudita'},a:{f:'🇺🇾',n:'Uruguai'},dt:'15/Jun (Seg)',tm:'19h',st:'Hard Rock Stadium',ci:'Miami, EUA'},
     ]},
     {r:2,games:[
-      {id:'H1R2G1',h:{f:'🇪🇸',n:'Espanha'},a:{f:'🇸🇦',n:'Arábia Saudita'},dt:'20/Jun (Sáb)',tm:'19h',st:'AT&T Stadium',ci:'Dallas, EUA'},
-      {id:'H1R2G2',h:{f:'🇺🇾',n:'Uruguai'},a:{f:'🇨🇻',n:'Cabo Verde'},dt:'20/Jun (Sáb)',tm:'22h',st:'NRG Stadium',ci:'Houston, EUA'},
+      {id:'H1R2G1',h:{f:'🇪🇸',n:'Espanha'},a:{f:'🇸🇦',n:'Arábia Saudita'},dt:'21/Jun (Dom)',tm:'13h',st:'AT&T Stadium',ci:'Dallas, EUA'},
+      {id:'H1R2G2',h:{f:'🇺🇾',n:'Uruguai'},a:{f:'🇨🇻',n:'Cabo Verde'},dt:'21/Jun (Dom)',tm:'19h',st:'NRG Stadium',ci:'Houston, EUA'},
     ]},
     {r:3,games:[
-      {id:'H1R3G1',h:{f:'🇪🇸',n:'Espanha'},a:{f:'🇺🇾',n:'Uruguai'},dt:'26/Jun (Sex)',tm:'17h',st:'Hard Rock Stadium',ci:'Miami, EUA'},
-      {id:'H1R3G2',h:{f:'🇨🇻',n:'Cabo Verde'},a:{f:'🇸🇦',n:'Arábia Saudita'},dt:'26/Jun (Sex)',tm:'17h',st:'Mercedes-Benz Stadium',ci:'Atlanta, EUA'},
+      {id:'H1R3G1',h:{f:'🇪🇸',n:'Espanha'},a:{f:'🇺🇾',n:'Uruguai'},dt:'26/Jun (Sex)',tm:'21h',st:'Hard Rock Stadium',ci:'Miami, EUA'},
+      {id:'H1R3G2',h:{f:'🇨🇻',n:'Cabo Verde'},a:{f:'🇸🇦',n:'Arábia Saudita'},dt:'26/Jun (Sex)',tm:'21h',st:'Mercedes-Benz Stadium',ci:'Atlanta, EUA'},
     ]},
   ],
   I:[
@@ -259,12 +259,12 @@ const MATCHES = {
       {id:'I1R1G2',h:{f:'🇮🇶',n:'Iraque'},a:{f:'🇳🇴',n:'Noruega'},dt:'16/Jun (Ter)',tm:'19h',st:'Gillette Stadium',ci:'Boston, EUA'},
     ]},
     {r:2,games:[
-      {id:'I1R2G1',h:{f:'🇫🇷',n:'França'},a:{f:'🇮🇶',n:'Iraque'},dt:'21/Jun (Dom)',tm:'16h',st:'Hard Rock Stadium',ci:'Miami, EUA'},
-      {id:'I1R2G2',h:{f:'🇳🇴',n:'Noruega'},a:{f:'🇸🇳',n:'Senegal'},dt:'21/Jun (Dom)',tm:'19h',st:'Mercedes-Benz Stadium',ci:'Atlanta, EUA'},
+      {id:'I1R2G1',h:{f:'🇫🇷',n:'França'},a:{f:'🇮🇶',n:'Iraque'},dt:'22/Jun (Seg)',tm:'18h',st:'Hard Rock Stadium',ci:'Miami, EUA'},
+      {id:'I1R2G2',h:{f:'🇳🇴',n:'Noruega'},a:{f:'🇸🇳',n:'Senegal'},dt:'22/Jun (Seg)',tm:'21h',st:'Mercedes-Benz Stadium',ci:'Atlanta, EUA'},
     ]},
     {r:3,games:[
-      {id:'I1R3G1',h:{f:'🇫🇷',n:'França'},a:{f:'🇳🇴',n:'Noruega'},dt:'26/Jun (Sex)',tm:'21h',st:'MetLife Stadium',ci:'Nova York/NJ, EUA'},
-      {id:'I1R3G2',h:{f:'🇸🇳',n:'Senegal'},a:{f:'🇮🇶',n:'Iraque'},dt:'26/Jun (Sex)',tm:'21h',st:'Gillette Stadium',ci:'Boston, EUA'},
+      {id:'I1R3G1',h:{f:'🇫🇷',n:'França'},a:{f:'🇳🇴',n:'Noruega'},dt:'26/Jun (Sex)',tm:'16h',st:'MetLife Stadium',ci:'Nova York/NJ, EUA'},
+      {id:'I1R3G2',h:{f:'🇸🇳',n:'Senegal'},a:{f:'🇮🇶',n:'Iraque'},dt:'26/Jun (Sex)',tm:'16h',st:'Gillette Stadium',ci:'Boston, EUA'},
     ]},
   ],
   J:[
@@ -273,12 +273,12 @@ const MATCHES = {
       {id:'J1R1G2',h:{f:'🇦🇹',n:'Áustria'},a:{f:'🇯🇴',n:'Jordânia'},dt:'17/Jun (Qua)',tm:'01h',st:"Levi's Stadium",ci:'San Francisco, EUA'},
     ]},
     {r:2,games:[
-      {id:'J1R2G1',h:{f:'🇦🇷',n:'Argentina'},a:{f:'🇦🇹',n:'Áustria'},dt:'21/Jun (Dom)',tm:'22h',st:'SoFi Stadium',ci:'Los Angeles, EUA'},
-      {id:'J1R2G2',h:{f:'🇯🇴',n:'Jordânia'},a:{f:'🇩🇿',n:'Argélia'},dt:'22/Jun (Seg)',tm:'13h',st:'Lincoln Financial Field',ci:'Filadélfia, EUA'},
+      {id:'J1R2G1',h:{f:'🇦🇷',n:'Argentina'},a:{f:'🇦🇹',n:'Áustria'},dt:'22/Jun (Seg)',tm:'14h',st:'SoFi Stadium',ci:'Los Angeles, EUA'},
+      {id:'J1R2G2',h:{f:'🇯🇴',n:'Jordânia'},a:{f:'🇩🇿',n:'Argélia'},dt:'23/Jun (Ter)',tm:'00h',st:'Lincoln Financial Field',ci:'Filadélfia, EUA'},
     ]},
     {r:3,games:[
-      {id:'J1R3G1',h:{f:'🇦🇷',n:'Argentina'},a:{f:'🇯🇴',n:'Jordânia'},dt:'27/Jun (Sáb)',tm:'13h',st:'SoFi Stadium',ci:'Los Angeles, EUA'},
-      {id:'J1R3G2',h:{f:'🇩🇿',n:'Argélia'},a:{f:'🇦🇹',n:'Áustria'},dt:'27/Jun (Sáb)',tm:'13h',st:'Arrowhead Stadium',ci:'Kansas City, EUA'},
+      {id:'J1R3G1',h:{f:'🇦🇷',n:'Argentina'},a:{f:'🇯🇴',n:'Jordânia'},dt:'27/Jun (Sáb)',tm:'23h',st:'SoFi Stadium',ci:'Los Angeles, EUA'},
+      {id:'J1R3G2',h:{f:'🇩🇿',n:'Argélia'},a:{f:'🇦🇹',n:'Áustria'},dt:'27/Jun (Sáb)',tm:'23h',st:'Arrowhead Stadium',ci:'Kansas City, EUA'},
     ]},
   ],
   K:[
@@ -287,12 +287,12 @@ const MATCHES = {
       {id:'K1R1G2',h:{f:'🇺🇿',n:'Uzbequistão'},a:{f:'🇨🇴',n:'Colômbia'},dt:'17/Jun (Qua)',tm:'23h',st:'Estádio Azteca',ci:'Cidade do México, MEX'},
     ]},
     {r:2,games:[
-      {id:'K1R2G1',h:{f:'🇵🇹',n:'Portugal'},a:{f:'🇺🇿',n:'Uzbequistão'},dt:'22/Jun (Seg)',tm:'16h',st:"Levi's Stadium",ci:'San Francisco, EUA'},
-      {id:'K1R2G2',h:{f:'🇨🇴',n:'Colômbia'},a:{f:'🇨🇩',n:'RD Congo'},dt:'22/Jun (Seg)',tm:'19h',st:'AT&T Stadium',ci:'Dallas, EUA'},
+      {id:'K1R2G1',h:{f:'🇵🇹',n:'Portugal'},a:{f:'🇺🇿',n:'Uzbequistão'},dt:'23/Jun (Ter)',tm:'14h',st:"Levi's Stadium",ci:'San Francisco, EUA'},
+      {id:'K1R2G2',h:{f:'🇨🇴',n:'Colômbia'},a:{f:'🇨🇩',n:'RD Congo'},dt:'23/Jun (Ter)',tm:'23h',st:'AT&T Stadium',ci:'Dallas, EUA'},
     ]},
     {r:3,games:[
-      {id:'K1R3G1',h:{f:'🇵🇹',n:'Portugal'},a:{f:'🇨🇴',n:'Colômbia'},dt:'27/Jun (Sáb)',tm:'17h',st:'NRG Stadium',ci:'Houston, EUA'},
-      {id:'K1R3G2',h:{f:'🇨🇩',n:'RD Congo'},a:{f:'🇺🇿',n:'Uzbequistão'},dt:'27/Jun (Sáb)',tm:'17h',st:'Estádio Azteca',ci:'Cidade do México, MEX'},
+      {id:'K1R3G1',h:{f:'🇵🇹',n:'Portugal'},a:{f:'🇨🇴',n:'Colômbia'},dt:'27/Jun (Sáb)',tm:'20h30',st:'NRG Stadium',ci:'Houston, EUA'},
+      {id:'K1R3G2',h:{f:'🇨🇩',n:'RD Congo'},a:{f:'🇺🇿',n:'Uzbequistão'},dt:'27/Jun (Sáb)',tm:'20h30',st:'Estádio Azteca',ci:'Cidade do México, MEX'},
     ]},
   ],
   L:[
@@ -301,12 +301,12 @@ const MATCHES = {
       {id:'L1R1G2',h:{f:'🇬🇭',n:'Gana'},a:{f:'🇵🇦',n:'Panamá'},dt:'17/Jun (Qua)',tm:'20h',st:'BMO Field',ci:'Toronto, CAN'},
     ]},
     {r:2,games:[
-      {id:'L1R2G1',h:{f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra'},a:{f:'🇬🇭',n:'Gana'},dt:'22/Jun (Seg)',tm:'22h',st:'NRG Stadium',ci:'Houston, EUA'},
-      {id:'L1R2G2',h:{f:'🇵🇦',n:'Panamá'},a:{f:'🇭🇷',n:'Croácia'},dt:'23/Jun (Ter)',tm:'16h',st:'Estadio BBVA',ci:'Monterrey, MEX'},
+      {id:'L1R2G1',h:{f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra'},a:{f:'🇬🇭',n:'Gana'},dt:'23/Jun (Ter)',tm:'17h',st:'NRG Stadium',ci:'Houston, EUA'},
+      {id:'L1R2G2',h:{f:'🇵🇦',n:'Panamá'},a:{f:'🇭🇷',n:'Croácia'},dt:'23/Jun (Ter)',tm:'20h',st:'Estadio BBVA',ci:'Monterrey, MEX'},
     ]},
     {r:3,games:[
-      {id:'L1R3G1',h:{f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra'},a:{f:'🇵🇦',n:'Panamá'},dt:'27/Jun (Sáb)',tm:'21h',st:'AT&T Stadium',ci:'Dallas, EUA'},
-      {id:'L1R3G2',h:{f:'🇭🇷',n:'Croácia'},a:{f:'🇬🇭',n:'Gana'},dt:'27/Jun (Sáb)',tm:'21h',st:'BMO Field',ci:'Toronto, CAN'},
+      {id:'L1R3G1',h:{f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra'},a:{f:'🇵🇦',n:'Panamá'},dt:'27/Jun (Sáb)',tm:'18h',st:'AT&T Stadium',ci:'Dallas, EUA'},
+      {id:'L1R3G2',h:{f:'🇭🇷',n:'Croácia'},a:{f:'🇬🇭',n:'Gana'},dt:'27/Jun (Sáb)',tm:'18h',st:'BMO Field',ci:'Toronto, CAN'},
     ]},
   ],
 };
