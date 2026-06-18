@@ -1144,7 +1144,7 @@ function renderRanking(){
         const medal = medals[i] || '';
         const pct = ALL_IDS.length ? Math.round(r.filled/ALL_IDS.length*100) : 0;
         const ptsDisplay = r.pts % 1 === 0 ? r.pts.toString() : r.pts.toFixed(1);
-     
+      
         return`<div class="rank-card ${cardCls}" onclick="showUserDetail('${r.user.replace(/'/g,"\\'")}')">
           ${medal?`<div class="rank-medal">${medal}</div>`:''}
           <div class="rank-row">
@@ -1179,9 +1179,9 @@ function showUserDetail(user){
   const wrap = document.getElementById('ranking-detail-wrap');
   const ttl  = document.getElementById('rd-title');
   const lst  = document.getElementById('ranking-detail-list');
- 
+
   ttl.textContent = `📋 Palpites de ${user}`;
- 
+
   const rows = [];
   Object.entries(MATCHES).forEach(([letter, rds])=>{
     rds.forEach(rd=>{
@@ -1191,21 +1191,34 @@ function showUserDetail(user){
         const p = calcPoints(palpite, oficial);
         const hasPalpite = palpite && palpite.h!=='' && palpite.a!=='';
         const hasResult  = oficial  && oficial.h !=='' && oficial.a!=='';
- 
+
         let icon, ptsCls, ptsLbl, resultTxt='';
         if(p===3){icon='⚡';ptsCls='exact';ptsLbl='+3'}
         else if(p===1.5){icon='✓';ptsCls='partial';ptsLbl='+1.5'}
         else if(p===0){icon='✗';ptsCls='miss';ptsLbl='0'}
         else if(!hasPalpite){icon='—';ptsCls='miss';ptsLbl='—'}
         else{icon='⏳';ptsCls='pending';ptsLbl='...'}
- 
+
         if(hasResult) resultTxt = `Oficial: ${g.h.f}${oficial.h}×${oficial.a}${g.a.f}`;
- 
+
+        // 🟢 LÓGICA DO PALPITE CEGO APLICADA:
+        const isLocked = gameIsLocked(g);
+        let textoPalpite = 'Sem palpite';
+
+        if (hasPalpite) {
+          // Mostra o palpite se o jogo bloqueou (iniciou) OU se for o dono do palpite olhando
+          if (isLocked || user === S.user) {
+            textoPalpite = `Palpite: ${palpite.h}×${palpite.a}`;
+          } else {
+            textoPalpite = `🔒 Oculto até o início`;
+          }
+        }
+
         rows.push(`<div class="detail-match">
           <div class="dm-icon">${icon}</div>
           <div style="flex:1;min-width:0">
             <div class="dm-teams">${g.h.f} ${g.h.n} × ${g.a.f} ${g.a.n}</div>
-            <div class="dm-palpite">${hasPalpite?`Palpite: ${palpite.h}×${palpite.a}`:'Sem palpite'}</div>
+            <div class="dm-palpite">${textoPalpite}</div>
             ${resultTxt?`<div class="dm-result" style="color:var(--teal);font-size:.7rem">${resultTxt}</div>`:''}
           </div>
           <div class="dm-pts ${ptsCls}">${ptsLbl}</div>
@@ -1213,7 +1226,7 @@ function showUserDetail(user){
       });
     });
   });
- 
+
   lst.innerHTML = rows.join('');
   wrap.style.display = 'block';
   wrap.scrollIntoView({behavior:'smooth', block:'start'});
