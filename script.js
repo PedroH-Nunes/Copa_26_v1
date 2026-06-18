@@ -147,8 +147,8 @@ const MATCHES = {
       {id:'A1R1G2',h:{f:'🇰🇷',n:'Coreia do Sul'},a:{f:'🇨🇿',n:'República Tcheca'},dt:'11/Jun (Qui)',tm:'23h',st:'Estádio Akron',ci:'Guadalajara, MEX'},
     ]},
     {r:2,games:[
-      {id:'A1R2G1',h:{f:'🇲🇽',n:'México'},a:{f:'🇰🇷',n:'Coreia do Sul'},dt:'16/Jun (Ter)',tm:'23h',st:'Estádio Akron',ci:'Guadalajara, MEX'},
-      {id:'A1R2G2',h:{f:'🇨🇿',n:'República Tcheca'},a:{f:'🇿🇦',n:'África do Sul'},dt:'17/Jun (Qua)',tm:'16h',st:'Lumen Field',ci:'Seattle, EUA'},
+      {id:'A1R2G1',h:{f:'🇲🇽',n:'México'},a:{f:'🇰🇷',n:'Coreia do Sul'},dt:'18/Jun (Qui)',tm:'22h',st:'Estádio Akron',ci:'Guadalajara, MEX'},
+      {id:'A1R2G2',h:{f:'🇨🇿',n:'República Tcheca'},a:{f:'🇿🇦',n:'África do Sul'},dt:'18/Jun (Qui)',tm:'13h',st:'Lumen Field',ci:'Seattle, EUA'},
     ]},
     {r:3,games:[
       {id:'A1R3G1',h:{f:'🇲🇽',n:'México'},a:{f:'🇨🇿',n:'República Tcheca'},dt:'24/Jun (Qua)',tm:'13h',st:'Estádio Azteca',ci:'Cidade do México, MEX'},
