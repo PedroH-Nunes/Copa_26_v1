@@ -106,6 +106,15 @@
     <div class="prog-bar-outer"><div class="prog-bar-inner" id="global-prog-fill" style="width:0%"></div></div>
   </div>
   <div class="groups-grid" id="groups-grid"></div>
+
+  <!-- Botão Mata-Mata -->
+  <div class="knockout-entry-wrap">
+    <div class="knockout-entry-label">FASE ELIMINATÓRIA</div>
+    <button class="btn-knockout-entry" onclick="showKnockout()">
+      ⚔️ PALPITES DO MATA-MATA
+    </button>
+    <div class="knockout-entry-sub">Segunda Fase · Oitavas · Quartas · Semi · Final</div>
+  </div>
 </div>
 
 <!-- ═══════════════ TRILHA ═══════════════ -->
@@ -145,6 +154,37 @@
   </div>
 </div>
 
+<!-- ═══════════════ MATA-MATA ═══════════════ -->
+<div id="s-knockout" class="screen">
+  <div class="topbar">
+    <button class="btn-back" onclick="showGroups()">← Grupos</button>
+    <div class="topbar-logo">⚔️ MATA-MATA</div>
+    <button class="btn-sm" onclick="showRanking()">🏆 Ranking</button>
+  </div>
+
+  <div class="ko-header">
+    <div class="ko-title">FASE ELIMINATÓRIA</div>
+    <div class="ko-subtitle">Copa do Mundo 2026 · Bloqueio automático no horário do jogo</div>
+  </div>
+
+  <!-- Progress bar mata-mata -->
+  <div class="ko-prog-wrap">
+    <div class="ko-prog-label">
+      <span id="ko-prog-lbl">0/0 palpites</span>
+      <span id="ko-prog-pct">0%</span>
+    </div>
+    <div class="prog-bar-outer"><div class="prog-bar-inner" id="ko-prog-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- Tabs de fase -->
+  <div class="ko-tabs-wrap">
+    <div class="ko-tabs" id="ko-tabs"></div>
+  </div>
+
+  <!-- Conteúdo do bracket -->
+  <div class="ko-bracket" id="ko-bracket"></div>
+</div>
+
 <!-- ═══════════════ POPUP DE CONTINUAÇÃO ═══════════════ -->
 <div id="continue-overlay" class="continue-overlay" style="display:none">
   <div class="continue-modal">
@@ -161,5 +201,6 @@
 <div id="toast"></div>
 
 <script src="script.js"></script>
+<script src="knockout.js"></script>
 </body>
 </html>
