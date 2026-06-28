@@ -1328,3 +1328,496 @@ function saveOfficialGameResult(matchId){
   renderRanking();
   toast('✔ Resultado salvo!','ok');
 }
+/* ═══════════════════════════════════════════════════════
+   MATA-MATA DATA (KNOCKOUT STAGE)
+   Estrutura completa com bloqueio por horário individual
+═══════════════════════════════════════════════════════ */
+
+const KNOCKOUT_ROUNDS = [
+  {
+    id: 'r16',
+    label: 'Segunda Fase',
+    short: 'R16',
+    sides: ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left',
+            'right','right','right','right','right','right','right','right'],
+    matches: [
+      // LADO ESQUERDO
+      { id: 'KO_R16_1',  slot: 1,  side: 'left',  label: 'SF1',  h: { abbr:'ALE', f:'🇩🇪', n:'Alemanha'       }, a: { abbr:'PAR', f:'🇵🇾', n:'Paraguai'        }, dt:'29/Jun', tm:'17:30', dtISO:'2026-06-29T17:30:00-03:00' },
+      { id: 'KO_R16_2',  slot: 2,  side: 'left',  label: 'SF2',  h: { abbr:'FRA', f:'🇫🇷', n:'França'         }, a: { abbr:'SUE', f:'🇸🇪', n:'Suécia'          }, dt:'30/Jun', tm:'18:00', dtISO:'2026-06-30T18:00:00-03:00' },
+      { id: 'KO_R16_3',  slot: 3,  side: 'left',  label: 'SF3',  h: { abbr:'AFS', f:'🇿🇦', n:'África do Sul'  }, a: { abbr:'CAN', f:'🇨🇦', n:'Canadá'          }, dt:'28/Jun', tm:'16:00', dtISO:'2026-06-28T16:00:00-03:00' },
+      { id: 'KO_R16_4',  slot: 4,  side: 'left',  label: 'SF4',  h: { abbr:'HOL', f:'🇳🇱', n:'Holanda'        }, a: { abbr:'MAR', f:'🇲🇦', n:'Marrocos'        }, dt:'29/Jun', tm:'22:00', dtISO:'2026-06-29T22:00:00-03:00' },
+      { id: 'KO_R16_5',  slot: 5,  side: 'left',  label: 'SF5',  h: { abbr:'POR', f:'🇵🇹', n:'Portugal'       }, a: { abbr:'CRO', f:'🇭🇷', n:'Croácia'         }, dt:'02/Jul', tm:'20:00', dtISO:'2026-07-02T20:00:00-03:00' },
+      { id: 'KO_R16_6',  slot: 6,  side: 'left',  label: 'SF6',  h: { abbr:'ESP', f:'🇪🇸', n:'Espanha'        }, a: { abbr:'AUT', f:'🇦🇹', n:'Áustria'         }, dt:'02/Jul', tm:'16:00', dtISO:'2026-07-02T16:00:00-03:00' },
+      { id: 'KO_R16_7',  slot: 7,  side: 'left',  label: 'SF7',  h: { abbr:'EUA', f:'🇺🇸', n:'Estados Unidos' }, a: { abbr:'BOS', f:'🇧🇦', n:'Bósnia'          }, dt:'01/Jul', tm:'21:00', dtISO:'2026-07-01T21:00:00-03:00' },
+      { id: 'KO_R16_8',  slot: 8,  side: 'left',  label: 'SF8',  h: { abbr:'BEL', f:'🇧🇪', n:'Bélgica'        }, a: { abbr:'SEN', f:'🇸🇳', n:'Senegal'         }, dt:'01/Jul', tm:'17:00', dtISO:'2026-07-01T17:00:00-03:00' },
+      // LADO DIREITO
+      { id: 'KO_R16_9',  slot: 9,  side: 'right', label: 'SF9',  h: { abbr:'BRA', f:'🇧🇷', n:'Brasil'         }, a: { abbr:'JAP', f:'🇯🇵', n:'Japão'           }, dt:'29/Jun', tm:'14:00', dtISO:'2026-06-29T14:00:00-03:00' },
+      { id: 'KO_R16_10', slot: 10, side: 'right', label: 'SF10', h: { abbr:'CMA', f:'🇨🇮', n:'Costa do Marfim'}, a: { abbr:'NOR', f:'🇳🇴', n:'Noruega'         }, dt:'30/Jun', tm:'14:00', dtISO:'2026-06-30T14:00:00-03:00' },
+      { id: 'KO_R16_11', slot: 11, side: 'right', label: 'SF11', h: { abbr:'MEX', f:'🇲🇽', n:'México'         }, a: { abbr:'EQU', f:'🇪🇨', n:'Equador'         }, dt:'30/Jun', tm:'22:00', dtISO:'2026-06-30T22:00:00-03:00' },
+      { id: 'KO_R16_12', slot: 12, side: 'right', label: 'SF12', h: { abbr:'ING', f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', n:'Inglaterra'     }, a: { abbr:'RDC', f:'🇨🇩', n:'RD Congo'        }, dt:'01/Jul', tm:'13:00', dtISO:'2026-07-01T13:00:00-03:00' },
+      { id: 'KO_R16_13', slot: 13, side: 'right', label: 'SF13', h: { abbr:'ARG', f:'🇦🇷', n:'Argentina'      }, a: { abbr:'CBV', f:'🇨🇻', n:'Cabo Verde'      }, dt:'03/Jul', tm:'19:00', dtISO:'2026-07-03T19:00:00-03:00' },
+      { id: 'KO_R16_14', slot: 14, side: 'right', label: 'SF14', h: { abbr:'AUS', f:'🇦🇺', n:'Austrália'      }, a: { abbr:'EGI', f:'🇪🇬', n:'Egito'           }, dt:'03/Jul', tm:'15:00', dtISO:'2026-07-03T15:00:00-03:00' },
+      { id: 'KO_R16_15', slot: 15, side: 'right', label: 'SF15', h: { abbr:'SUI', f:'🇨🇭', n:'Suíça'          }, a: { abbr:'AGL', f:'🇩🇿', n:'Argélia'         }, dt:'03/Jul', tm:'00:00', dtISO:'2026-07-03T00:00:00-03:00' },
+      { id: 'KO_R16_16', slot: 16, side: 'right', label: 'SF16', h: { abbr:'COL', f:'🇨🇴', n:'Colômbia'       }, a: { abbr:'GAN', f:'🇬🇭', n:'Gana'            }, dt:'03/Jul', tm:'22:30', dtISO:'2026-07-03T22:30:00-03:00' },
+    ]
+  },
+  {
+    id: 'qf',
+    label: 'Oitavas de Final',
+    short: 'OIT',
+    matches: [
+      { id: 'KO_QF_1', slot: 1, side: 'left',  label: 'OIT1', feedFrom: ['KO_R16_1','KO_R16_2'],   dt:'04/Jul', tm:'18:00', dtISO:'2026-07-04T18:00:00-03:00' },
+      { id: 'KO_QF_2', slot: 2, side: 'left',  label: 'OIT2', feedFrom: ['KO_R16_3','KO_R16_4'],   dt:'04/Jul', tm:'14:00', dtISO:'2026-07-04T14:00:00-03:00' },
+      { id: 'KO_QF_3', slot: 3, side: 'left',  label: 'OIT3', feedFrom: ['KO_R16_5','KO_R16_6'],   dt:'06/Jul', tm:'16:00', dtISO:'2026-07-06T16:00:00-03:00' },
+      { id: 'KO_QF_4', slot: 4, side: 'left',  label: 'OIT4', feedFrom: ['KO_R16_7','KO_R16_8'],   dt:'06/Jul', tm:'21:00', dtISO:'2026-07-06T21:00:00-03:00' },
+      { id: 'KO_QF_5', slot: 5, side: 'right', label: 'OIT5', feedFrom: ['KO_R16_9','KO_R16_10'],  dt:'05/Jul', tm:'17:00', dtISO:'2026-07-05T17:00:00-03:00' },
+      { id: 'KO_QF_6', slot: 6, side: 'right', label: 'OIT6', feedFrom: ['KO_R16_11','KO_R16_12'], dt:'05/Jul', tm:'21:00', dtISO:'2026-07-05T21:00:00-03:00' },
+      { id: 'KO_QF_7', slot: 7, side: 'right', label: 'OIT7', feedFrom: ['KO_R16_13','KO_R16_14'], dt:'07/Jul', tm:'13:00', dtISO:'2026-07-07T13:00:00-03:00' },
+      { id: 'KO_QF_8', slot: 8, side: 'right', label: 'OIT8', feedFrom: ['KO_R16_15','KO_R16_16'], dt:'07/Jul', tm:'17:00', dtISO:'2026-07-07T17:00:00-03:00' },
+    ]
+  },
+  {
+    id: 'sf',
+    label: 'Quartas de Final',
+    short: 'QTF',
+    matches: [
+      { id: 'KO_SF_1', slot: 1, side: 'left',  label: 'QTF1', feedFrom: ['KO_QF_1','KO_QF_2'], dt:'09/Jul', tm:'17:00', dtISO:'2026-07-09T17:00:00-03:00' },
+      { id: 'KO_SF_2', slot: 2, side: 'left',  label: 'QTF2', feedFrom: ['KO_QF_3','KO_QF_4'], dt:'10/Jul', tm:'16:00', dtISO:'2026-07-10T16:00:00-03:00' },
+      { id: 'KO_SF_3', slot: 3, side: 'right', label: 'QTF3', feedFrom: ['KO_QF_5','KO_QF_6'], dt:'11/Jul', tm:'18:00', dtISO:'2026-07-11T18:00:00-03:00' },
+      { id: 'KO_SF_4', slot: 4, side: 'right', label: 'QTF4', feedFrom: ['KO_QF_7','KO_QF_8'], dt:'11/Jul', tm:'22:00', dtISO:'2026-07-11T22:00:00-03:00' },
+    ]
+  },
+  {
+    id: 'f',
+    label: 'Semifinal',
+    short: 'SEMI',
+    matches: [
+      { id: 'KO_F_1', slot: 1, side: 'left',  label: 'SEMI1', feedFrom: ['KO_SF_1','KO_SF_2'], dt:'14/Jul', tm:'16:00', dtISO:'2026-07-14T16:00:00-03:00' },
+      { id: 'KO_F_2', slot: 2, side: 'right', label: 'SEMI2', feedFrom: ['KO_SF_3','KO_SF_4'], dt:'15/Jul', tm:'16:00', dtISO:'2026-07-15T16:00:00-03:00' },
+    ]
+  },
+  {
+    id: 'finals',
+    label: 'Finais',
+    short: 'FIN',
+    matches: [
+      { id: 'KO_3RD',   slot: 1, side: 'left',  label: '3LUG',  feedFrom: ['KO_F_1','KO_F_2'], feedLoser: true, dt:'18/Jul', tm:'18:00', dtISO:'2026-07-18T18:00:00-03:00' },
+      { id: 'KO_FINAL', slot: 2, side: 'right', label: 'FINAL', feedFrom: ['KO_F_1','KO_F_2'], dt:'19/Jul', tm:'16:00', dtISO:'2026-07-19T16:00:00-03:00' },
+    ]
+  }
+];
+
+// Flat list de todos os IDs do mata-mata (para contagem global)
+const ALL_KO_IDS = KNOCKOUT_ROUNDS.flatMap(r => r.matches.map(m => m.id));
+
+/* ═══════════════════════════════════════════════════════
+   HELPERS DO MATA-MATA
+═══════════════════════════════════════════════════════ */
+
+function koGameIsLocked(match) {
+  return new Date() >= new Date(match.dtISO);
+}
+
+function getKoSc(user, id) {
+  const sc = cloudLoaded ? cloudState.scores : getScores();
+  return (sc[user] && sc[user][id] != null) ? sc[user][id] : null;
+}
+
+function saveKoSc(user, id, h, a) {
+  const sc = getScores();
+  if (!sc[user]) sc[user] = {};
+  sc[user][id] = { h, a };
+  saveScores(sc);
+  if (!cloudState.scores[user]) cloudState.scores[user] = {};
+  cloudState.scores[user][id] = { h, a };
+  syncToCloud(user, id, h, a);
+}
+
+// Retorna o time "vencedor" de um jogo KO com base nos resultados oficiais
+// Se ainda não há resultado, retorna null
+function getKoWinner(matchId) {
+  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
+  const r = results[matchId];
+  if (!r || r.h === '' || r.a === '') return null;
+  const m = findKoMatch(matchId);
+  if (!m) return null;
+  const h = parseInt(r.h), a = parseInt(r.a);
+  if (h > a) return m.h || { abbr:'?', f:'?', n:'Venc.' };
+  if (a > h) return m.a || { abbr:'?', f:'?', n:'Venc.' };
+  return null; // empate — sem vencedor (em mata-mata pode ir pra prorrogação)
+}
+
+function getKoLoser(matchId) {
+  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
+  const r = results[matchId];
+  if (!r || r.h === '' || r.a === '') return null;
+  const m = findKoMatch(matchId);
+  if (!m) return null;
+  const h = parseInt(r.h), a = parseInt(r.a);
+  if (h > a) return m.a || { abbr:'?', f:'?', n:'Perd.' };
+  if (a > h) return m.h || { abbr:'?', f:'?', n:'Perd.' };
+  return null;
+}
+
+function findKoMatch(id) {
+  for (const round of KNOCKOUT_ROUNDS) {
+    const m = round.matches.find(x => x.id === id);
+    if (m) return m;
+  }
+  return null;
+}
+
+// Resolve os times de uma partida KO (considerando feedFrom)
+function resolveKoTeams(match) {
+  if (match.h && match.a) return { h: match.h, a: match.a }; // times fixos (R16)
+  
+  // Times derivados de resultados anteriores
+  const [srcA, srcB] = match.feedFrom || [];
+  let teamA = null, teamB = null;
+  
+  if (match.feedLoser) {
+    // Disputa 3º lugar: perdedores das semis
+    teamA = srcA ? getKoLoser(srcA) : null;
+    teamB = srcB ? getKoLoser(srcB) : null;
+  } else {
+    teamA = srcA ? getKoWinner(srcA) : null;
+    teamB = srcB ? getKoWinner(srcB) : null;
+  }
+
+  const labelA = match.feedLoser ? `Perd. ${srcA ? findKoMatch(srcA)?.label : '?'}` : `Venc. ${srcA ? findKoMatch(srcA)?.label : '?'}`;
+  const labelB = match.feedLoser ? `Perd. ${srcB ? findKoMatch(srcB)?.label : '?'}` : `Venc. ${srcB ? findKoMatch(srcB)?.label : '?'}`;
+
+  return {
+    h: teamA || { abbr: '?', f: '⚽', n: labelA },
+    a: teamB || { abbr: '?', f: '⚽', n: labelB }
+  };
+}
+
+/* ═══════════════════════════════════════════════════════
+   TELA MATA-MATA — NAVEGAÇÃO
+═══════════════════════════════════════════════════════ */
+let koState = { roundIdx: 0, matchIdx: null };
+
+function showKnockout() {
+  koState.roundIdx = 0;
+  renderKnockoutBracket();
+  show('s-knockout');
+}
+
+function renderKnockoutBracket() {
+  const container = document.getElementById('ko-bracket');
+  if (!container) return;
+
+  // Tabs de fase
+  const tabsEl = document.getElementById('ko-tabs');
+  if (tabsEl) {
+    tabsEl.innerHTML = KNOCKOUT_ROUNDS.map((r, i) => `
+      <button class="ko-tab${i === koState.roundIdx ? ' active' : ''}" onclick="selectKoRound(${i})">
+        ${r.short}
+      </button>
+    `).join('');
+  }
+
+  const round = KNOCKOUT_ROUNDS[koState.roundIdx];
+  const isFinals = round.id === 'finals';
+
+  let html = `<div class="ko-round-title">${round.label}</div>`;
+
+  if (isFinals) {
+    // Layout especial para finais (3º lugar + final lado a lado)
+    html += `<div class="ko-finals-wrap">`;
+    round.matches.forEach(match => {
+      html += renderKoMatchCard(match, true);
+    });
+    html += `</div>`;
+  } else {
+    // Layout 2 colunas (esquerda / direita)
+    const leftMatches  = round.matches.filter(m => m.side === 'left');
+    const rightMatches = round.matches.filter(m => m.side === 'right');
+
+    html += `<div class="ko-two-col">
+      <div class="ko-col ko-col-left">
+        <div class="ko-col-label">LADO ESQUERDO</div>
+        ${leftMatches.map(m => renderKoMatchCard(m, false)).join('')}
+      </div>
+      <div class="ko-col ko-col-right">
+        <div class="ko-col-label">LADO DIREITO</div>
+        ${rightMatches.map(m => renderKoMatchCard(m, false)).join('')}
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+  updateKoProgress();
+}
+
+function renderKoMatchCard(match, isFinal) {
+  const teams = resolveKoTeams(match);
+  const locked = koGameIsLocked(match);
+  const sc = getKoSc(S.user, match.id);
+  const hv = sc ? sc.h : '';
+  const av = sc ? sc.a : '';
+  const saved = hv !== '' && av !== '';
+  const teamsKnown = teams.h.abbr !== '?' && teams.a.abbr !== '?';
+
+  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
+  const official = results[match.id];
+  const hasOfficial = official && official.h !== '' && official.a !== '';
+
+  // Pontuação desta partida (se houver resultado)
+  let scoreDisplay = '';
+  if (hasOfficial) {
+    const pts = calcPoints(sc, official);
+    if (pts === 3)   scoreDisplay = `<span class="ko-pts exact">⚡ +3</span>`;
+    else if (pts === 1.5) scoreDisplay = `<span class="ko-pts partial">✓ +1.5</span>`;
+    else if (pts === 0)   scoreDisplay = `<span class="ko-pts miss">✗ 0</span>`;
+  }
+
+  const isFinalMatch = match.id === 'KO_FINAL';
+  const is3rd        = match.id === 'KO_3RD';
+
+  return `
+  <div class="ko-match-card${saved ? ' saved' : ''}${isFinalMatch ? ' ko-grand-final' : ''}${is3rd ? ' ko-third' : ''}" id="ko-card-${match.id}">
+    <div class="ko-match-header">
+      <span class="ko-match-label">${isFinalMatch ? '🏆 GRANDE FINAL' : is3rd ? '🥉 3º LUGAR' : match.label}</span>
+      <span class="ko-match-date">📅 ${match.dt} · ⏰ ${match.tm}</span>
+    </div>
+
+    <div class="ko-match-body">
+      <div class="ko-team ko-team-h">
+        <span class="ko-flag">${teams.h.f}</span>
+        <span class="ko-tname">${teams.h.n}</span>
+      </div>
+
+      <div class="ko-score-center">
+        ${!teamsKnown ? `<span class="ko-pending-label">Aguardando<br>fase anterior</span>` : locked ? `
+          <div class="ko-score-inputs locked">
+            <span class="ko-score-val">${hv !== '' ? hv : '–'}</span>
+            <span class="ko-xsep">×</span>
+            <span class="ko-score-val">${av !== '' ? av : '–'}</span>
+          </div>
+          ${hasOfficial ? `<div class="ko-official-score">Oficial: ${official.h}×${official.a}</div>` : ''}
+          ${scoreDisplay}
+        ` : `
+          <div class="ko-score-inputs">
+            <input class="ko-sin" type="number" min="0" max="30" id="ko-h-${match.id}" value="${hv}" placeholder="–"
+              oninput="onKoInput('${match.id}')">
+            <span class="ko-xsep">×</span>
+            <input class="ko-sin" type="number" min="0" max="30" id="ko-a-${match.id}" value="${av}" placeholder="–"
+              oninput="onKoInput('${match.id}')">
+          </div>
+          <button class="ko-btn-save" onclick="saveKoGame('${match.id}')">💾 Salvar</button>
+        `}
+      </div>
+
+      <div class="ko-team ko-team-a">
+        <span class="ko-flag">${teams.a.f}</span>
+        <span class="ko-tname">${teams.a.n}</span>
+      </div>
+    </div>
+
+    ${saved && !locked ? `<div class="ko-saved-badge">✔ Salvo</div>` : ''}
+    ${locked && !teamsKnown ? `<div class="ko-lock-note">🔒 Bloqueado</div>` : ''}
+  </div>`;
+}
+
+function selectKoRound(idx) {
+  koState.roundIdx = idx;
+  renderKnockoutBracket();
+}
+
+function onKoInput(id) {
+  const h = document.getElementById(`ko-h-${id}`)?.value;
+  const a = document.getElementById(`ko-a-${id}`)?.value;
+  if (h !== '' && a !== '') saveKoGame(id, true);
+}
+
+function saveKoGame(id, silent = false) {
+  const match = findKoMatch(id);
+  if (!match) return;
+  if (koGameIsLocked(match)) { toast('🔒 Partida já iniciada! Não é possível alterar.', 'err'); return; }
+
+  const teams = resolveKoTeams(match);
+  if (teams.h.abbr === '?' || teams.a.abbr === '?') { toast('⏳ Times ainda não definidos!', 'err'); return; }
+
+  const h = document.getElementById(`ko-h-${id}`)?.value.trim();
+  const a = document.getElementById(`ko-a-${id}`)?.value.trim();
+
+  if (h === '' || a === '') {
+    if (!silent) toast('⚠ Preencha os dois campos!', 'err');
+    return;
+  }
+
+  saveKoSc(S.user, id, h, a);
+
+  const card = document.getElementById(`ko-card-${id}`);
+  if (card) card.classList.add('saved');
+
+  if (!silent) toast('✔ Palpite do mata-mata salvo!', 'ok');
+  updateKoProgress();
+}
+
+function updateKoProgress() {
+  const total = ALL_KO_IDS.length;
+  const done = ALL_KO_IDS.filter(id => {
+    const s = getKoSc(S.user, id);
+    return s && s.h !== '' && s.a !== '';
+  }).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+
+  const lbl = document.getElementById('ko-prog-lbl');
+  const pct_el = document.getElementById('ko-prog-pct');
+  const fill = document.getElementById('ko-prog-fill');
+  if (lbl) lbl.textContent = `${done}/${total} palpites`;
+  if (pct_el) pct_el.textContent = `${pct}%`;
+  if (fill) fill.style.width = `${pct}%`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   INTEGRAÇÃO: RANKING inclui pontos do mata-mata
+═══════════════════════════════════════════════════════ */
+
+// Sobrescreve buildRanking para incluir pontos KO
+const _originalBuildRanking = buildRanking;
+
+function buildRanking() {
+  const localUsers = Object.keys(getUsers());
+  const allUsers   = [...new Set([...cloudState.usuarios, ...localUsers])].filter(Boolean);
+  
+  const scores  = cloudLoaded ? cloudState.scores : getScores();
+  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
+
+  const matchesWithResult = Object.keys(results).length;
+
+  const ranking = allUsers.map(user => {
+    let pts = 0, exact = 0, partial = 0, miss = 0, pending = 0;
+
+    // Pontos da fase de grupos (original)
+    ALL_IDS.forEach(id => {
+      const palpite = scores[user] ? scores[user][id] : null;
+      const oficial = results[id];
+      const p = calcPoints(palpite, oficial);
+      if      (p === 3)   { pts += 3; exact++; }
+      else if (p === 1.5) { pts += 1.5; partial++; }
+      else if (p === 0)   { miss++; }
+      else if (oficial && oficial.h !== '' && oficial.a !== '') { miss++; }
+      else                { pending++; }
+    });
+
+    // Pontos do mata-mata
+    ALL_KO_IDS.forEach(id => {
+      const palpite = scores[user] ? scores[user][id] : null;
+      const oficial = results[id];
+      const p = calcPoints(palpite, oficial);
+      if      (p === 3)   { pts += 3; exact++; }
+      else if (p === 1.5) { pts += 1.5; partial++; }
+      else if (p === 0)   { miss++; }
+      else if (oficial && oficial.h !== '' && oficial.a !== '') { miss++; }
+      else                { pending++; }
+    });
+
+    const allMatchIds = [...ALL_IDS, ...ALL_KO_IDS];
+    const filled = allMatchIds.filter(id => {
+      const s = scores[user]?.[id];
+      return s && s.h !== '' && s.a !== '';
+    }).length;
+
+    return { user, pts, exact, partial, miss, pending, filled };
+  });
+
+  ranking.sort((a, b) => b.pts !== a.pts ? b.pts - a.pts : b.exact !== a.exact ? b.exact - a.exact : a.user.localeCompare(b.user));
+  return { ranking, matchesWithResult };
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN: suporte a resultados oficiais do mata-mata
+═══════════════════════════════════════════════════════ */
+
+function populateAdminGroupSelect() {
+  const sel = document.getElementById('admin-group-sel');
+  if (!sel || sel.options.length > 1) return;
+  Object.keys(GROUPS).forEach(letter => {
+    const opt = document.createElement('option');
+    opt.value = letter;
+    opt.textContent = `Grupo ${letter}`;
+    sel.appendChild(opt);
+  });
+  // Adiciona fases do mata-mata no seletor admin
+  KNOCKOUT_ROUNDS.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = 'KO_' + r.id;
+    opt.textContent = `🏆 ${r.label}`;
+    sel.appendChild(opt);
+  });
+}
+
+// Sobrescreve renderAdminGames para suportar mata-mata
+const _origRenderAdminGames = typeof renderAdminGames === 'function' ? renderAdminGames : null;
+
+function renderAdminGames() {
+  const letter = document.getElementById('admin-group-sel').value;
+  const container = document.getElementById('admin-games-list');
+  if (!letter) { container.innerHTML = ''; return; }
+
+  // Se for mata-mata
+  if (letter.startsWith('KO_')) {
+    const roundId = letter.replace('KO_', '');
+    const round = KNOCKOUT_ROUNDS.find(r => r.id === roundId);
+    if (!round) { container.innerHTML = ''; return; }
+
+    const results = getOfficialResults();
+    let html = '';
+    round.matches.forEach(g => {
+      const teams = resolveKoTeams(g);
+      const of = results[g.id];
+      const hv = of ? of.h : '';
+      const av = of ? of.a : '';
+      const savedMark = (hv !== '' && av !== '') ? `<span class="agr-saved">✔ salvo</span>` : '';
+      html += `<div class="admin-game-row">
+        <div style="flex:1;min-width:140px">
+          <div class="agr-teams">${teams.h.f} ${teams.h.n} × ${teams.a.f} ${teams.a.n}</div>
+          <div class="agr-date">${g.dt} · ${g.tm} — ${g.label}</div>
+        </div>
+        <div class="agr-score">
+          <input class="agr-sin" type="number" min="0" max="30" id="of-h-${g.id}" value="${hv}" placeholder="—">
+          <span class="agr-sep">×</span>
+          <input class="agr-sin" type="number" min="0" max="30" id="of-a-${g.id}" value="${av}" placeholder="—">
+          <button class="btn-save-result" onclick="saveOfficialGameResult('${g.id}')">Salvar</button>
+          ${savedMark}
+        </div>
+      </div>`;
+    });
+    container.innerHTML = html;
+    return;
+  }
+
+  // Fase de grupos (comportamento original)
+  const results = getOfficialResults();
+  const rounds  = MATCHES[letter];
+  if (!rounds) { container.innerHTML = ''; return; }
+
+  let html = '';
+  rounds.forEach(rd => {
+    html += `<div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:var(--gold);padding:.6rem .3rem .2rem;letter-spacing:.05em">RODADA ${rd.r}</div>`;
+    rd.games.forEach(g => {
+      const of = results[g.id];
+      const hv = of ? of.h : '';
+      const av = of ? of.a : '';
+      const savedMark = (hv !== '' && av !== '') ? `<span class="agr-saved">✔ salvo</span>` : '';
+      html += `<div class="admin-game-row">
+        <div style="flex:1;min-width:140px">
+          <div class="agr-teams">${g.h.f} ${g.h.n} × ${g.a.f} ${g.a.n}</div>
+          <div class="agr-date">${g.dt} · ${g.tm}</div>
+        </div>
+        <div class="agr-score">
+          <input class="agr-sin" type="number" min="0" max="30" id="of-h-${g.id}" value="${hv}" placeholder="—">
+          <span class="agr-sep">×</span>
+          <input class="agr-sin" type="number" min="0" max="30" id="of-a-${g.id}" value="${av}" placeholder="—">
+          <button class="btn-save-result" onclick="saveOfficialGameResult('${g.id}')">Salvar</button>
+          ${savedMark}
+        </div>
+      </div>`;
+    });
+  });
+  container.innerHTML = html;
+}
