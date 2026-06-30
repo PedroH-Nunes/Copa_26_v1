@@ -1751,6 +1751,124 @@ function populateAdminGroupSelect() {
   });
 }
 
+/* ═══════════════════════════════════════════════════════
+   RANKING DETAIL: sobrescreve showUserDetail para incluir
+   palpites do mata-mata com título separado
+═══════════════════════════════════════════════════════ */
+function showUserDetail(user) {
+  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
+  const scores  = cloudLoaded ? cloudState.scores : getScores();
+
+  const wrap = document.getElementById('ranking-detail-wrap');
+  const ttl  = document.getElementById('rd-title');
+  const lst  = document.getElementById('ranking-detail-list');
+
+  ttl.textContent = `📋 Palpites de ${user}`;
+
+  const rows = [];
+
+  // ── FASE DE GRUPOS ──────────────────────────────────
+  rows.push(`<div class="detail-section-title">⚽ Fase de Grupos</div>`);
+
+  Object.entries(MATCHES).forEach(([letter, rds]) => {
+    rds.forEach(rd => {
+      rd.games.forEach(g => {
+        const palpite = scores[user] ? scores[user][g.id] : null;
+        const oficial = results[g.id];
+        const p = calcPoints(palpite, oficial);
+        const hasPalpite = palpite && palpite.h !== '' && palpite.a !== '';
+        const hasResult  = oficial  && oficial.h !== '' && oficial.a !== '';
+
+        let icon, ptsCls, ptsLbl, resultTxt = '';
+        if      (p === 3)   { icon = '⚡'; ptsCls = 'exact';   ptsLbl = '+3';   }
+        else if (p === 1.5) { icon = '✓';  ptsCls = 'partial'; ptsLbl = '+1.5'; }
+        else if (p === 0)   { icon = '✗';  ptsCls = 'miss';    ptsLbl = '0';    }
+        else if (!hasPalpite) { icon = '—'; ptsCls = 'miss';   ptsLbl = '—';    }
+        else                { icon = '⏳'; ptsCls = 'pending'; ptsLbl = '...';  }
+
+        if (hasResult) resultTxt = `Oficial: ${g.h.f}${oficial.h}×${oficial.a}${g.a.f}`;
+
+        const isLocked = gameIsLocked(g);
+        let textoPalpite = 'Sem palpite';
+        if (hasPalpite) {
+          if (isLocked || user === S.user) {
+            textoPalpite = `Palpite: ${palpite.h}×${palpite.a}`;
+          } else {
+            textoPalpite = `🔒 Oculto até o início`;
+          }
+        }
+
+        rows.push(`<div class="detail-match">
+          <div class="dm-icon">${icon}</div>
+          <div style="flex:1;min-width:0">
+            <div class="dm-teams">${g.h.f} ${g.h.n} × ${g.a.f} ${g.a.n}</div>
+            <div class="dm-palpite">${textoPalpite}</div>
+            ${resultTxt ? `<div class="dm-result" style="color:var(--teal);font-size:.7rem">${resultTxt}</div>` : ''}
+          </div>
+          <div class="dm-pts ${ptsCls}">${ptsLbl}</div>
+        </div>`);
+      });
+    });
+  });
+
+  // ── MATA-MATA ────────────────────────────────────────
+  rows.push(`<div class="detail-section-title ko-section-title">⚔️ Palpites Mata-Mata</div>`);
+
+  KNOCKOUT_ROUNDS.forEach(round => {
+    // Subtítulo por fase
+    rows.push(`<div class="detail-ko-phase">${round.label}</div>`);
+
+    round.matches.forEach(g => {
+      const teams = resolveKoTeams(g);
+      const palpite = scores[user] ? scores[user][g.id] : null;
+      const oficial = results[g.id];
+      const p = calcPoints(palpite, oficial);
+      const hasPalpite = palpite && palpite.h !== '' && palpite.a !== '';
+      const hasResult  = oficial  && oficial.h !== '' && oficial.a !== '';
+      const teamsKnown = teams.h.abbr !== '?' && teams.a.abbr !== '?';
+
+      let icon, ptsCls, ptsLbl, resultTxt = '';
+      if      (p === 3)   { icon = '⚡'; ptsCls = 'exact';   ptsLbl = '+3';   }
+      else if (p === 1.5) { icon = '✓';  ptsCls = 'partial'; ptsLbl = '+1.5'; }
+      else if (p === 0)   { icon = '✗';  ptsCls = 'miss';    ptsLbl = '0';    }
+      else if (!hasPalpite) { icon = '—'; ptsCls = 'miss';   ptsLbl = '—';    }
+      else                { icon = '⏳'; ptsCls = 'pending'; ptsLbl = '...';  }
+
+      if (hasResult) resultTxt = `Oficial: ${oficial.h}×${oficial.a}`;
+
+      const isLocked = koGameIsLocked(g);
+      let textoPalpite = 'Sem palpite';
+      if (!teamsKnown) {
+        textoPalpite = '⏳ Aguardando fase anterior';
+      } else if (hasPalpite) {
+        if (isLocked || user === S.user) {
+          textoPalpite = `Palpite: ${palpite.h}×${palpite.a}`;
+        } else {
+          textoPalpite = `🔒 Oculto até o início`;
+        }
+      }
+
+      const teamLine = teamsKnown
+        ? `${teams.h.f} ${teams.h.n} × ${teams.a.f} ${teams.a.n}`
+        : `${g.label} — ${g.dt} · ${g.tm}`;
+
+      rows.push(`<div class="detail-match">
+        <div class="dm-icon">${icon}</div>
+        <div style="flex:1;min-width:0">
+          <div class="dm-teams">${teamLine}</div>
+          <div class="dm-palpite">${textoPalpite}</div>
+          ${resultTxt ? `<div class="dm-result" style="color:var(--teal);font-size:.7rem">${resultTxt}</div>` : ''}
+        </div>
+        <div class="dm-pts ${ptsCls}">${ptsLbl}</div>
+      </div>`);
+    });
+  });
+
+  lst.innerHTML = rows.join('');
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 // Sobrescreve renderAdminGames para suportar mata-mata
 const _origRenderAdminGames = typeof renderAdminGames === 'function' ? renderAdminGames : null;
 
