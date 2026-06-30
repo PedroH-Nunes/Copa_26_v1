@@ -1581,17 +1581,25 @@ function renderKoMatchCard(match, isFinal) {
   const hv = sc ? sc.h : '';
   const av = sc ? sc.a : '';
   const savedWinner = sc ? (sc.winner || '') : '';
-  const saved = hv !== '' && av !== '' && savedWinner !== '';
+  // "salvo" = tem placar. Winner só é extra em empate.
+  const saved = hv !== '' && av !== '';
   const teamsKnown = teams.h.abbr !== '?' && teams.a.abbr !== '?';
+  const needsWinnerLogic = isKoRoundNeedingWinner(match.id);
+  // No render inicial, picker visível se: empate salvo OU campos não bloqueados (JS mostra/oculta via onKoInput)
+  const currentDraw = saved && isDrawScore(hv, av);
+  const showWinnerPicker = teamsKnown && !locked && needsWinnerLogic;
+  // Picker inicia visível se já há empate salvo, senão oculto até usuário digitar empate
+  const pickerVisible = showWinnerPicker && currentDraw;
 
   const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
   const official = results[match.id];
   const hasOfficial = official && official.h !== '' && official.a !== '';
+  const officialDraw = hasOfficial && parseInt(official.h) === parseInt(official.a);
 
-  // Pontuação desta partida
+  // Pontuação
   let scoreDisplay = '';
   if (hasOfficial) {
-    const pts = calcPoints(sc, official);
+    const pts = calcKoPts(sc, official, match.id);
     if (pts === 3)        scoreDisplay = `<span class="ko-pts exact">⚡ +3</span>`;
     else if (pts === 1.5) scoreDisplay = `<span class="ko-pts partial">✓ +1.5</span>`;
     else if (pts === 0)   scoreDisplay = `<span class="ko-pts miss">✗ 0</span>`;
@@ -1600,27 +1608,21 @@ function renderKoMatchCard(match, isFinal) {
   const isFinalMatch = match.id === 'KO_FINAL';
   const is3rd        = match.id === 'KO_3RD';
 
-  // Bloco de empate: qual time avança? (pênaltis/prorrogação)
-  // Mostra sempre que os times são conhecidos e o jogo não está bloqueado
-  const showWinnerPicker = teamsKnown && !locked;
-
-  // Quando bloqueado, mostra quem o usuário escolheu como vencedor
+  // Escolha de vencedor quando bloqueado
   let lockedWinnerLine = '';
-  if (locked && teamsKnown && hv !== '' && av !== '') {
+  if (locked && teamsKnown && saved && needsWinnerLogic && currentDraw) {
     const chosenName = savedWinner === 'h' ? teams.h.n : savedWinner === 'a' ? teams.a.n : '—';
     const chosenFlag = savedWinner === 'h' ? teams.h.f : savedWinner === 'a' ? teams.a.f : '';
     lockedWinnerLine = `<div class="ko-winner-chosen">🏆 Avança: ${chosenFlag} ${chosenName}</div>`;
   }
 
-  // Resultado oficial: vencedor real
+  // Vencedor oficial
   let officialWinnerLine = '';
-  if (hasOfficial) {
+  if (hasOfficial && needsWinnerLogic && officialDraw) {
     const officialWinner = getKoWinner(match.id);
-    if (officialWinner) {
-      officialWinnerLine = `<div class="ko-official-winner">✅ Vencedor: ${officialWinner.f} ${officialWinner.n}</div>`;
-    } else {
-      officialWinnerLine = `<div class="ko-official-winner pending">⏳ Aguardando desempate</div>`;
-    }
+    officialWinnerLine = officialWinner
+      ? `<div class="ko-official-winner">✅ Vencedor: ${officialWinner.f} ${officialWinner.n}</div>`
+      : `<div class="ko-official-winner pending">⏳ Aguardando desempate oficial</div>`;
   }
 
   return `
@@ -1666,8 +1668,8 @@ function renderKoMatchCard(match, isFinal) {
     </div>
 
     ${showWinnerPicker ? `
-      <div class="ko-winner-picker" id="wp-${match.id}">
-        <div class="ko-winner-label">🏆 Quem avança? <span class="ko-winner-hint">(obrigatório — vale para pênaltis)</span></div>
+      <div class="ko-winner-picker" id="wp-${match.id}" style="display:${pickerVisible ? 'block' : 'none'}">
+        <div class="ko-winner-label">🏆 Quem avança? <span class="ko-winner-hint">(empate — escolha o vencedor)</span></div>
         <div class="ko-winner-options">
           <label class="ko-winner-opt${savedWinner === 'h' ? ' selected' : ''}">
             <input type="radio" name="winner-${match.id}" value="h" ${savedWinner === 'h' ? 'checked' : ''}
@@ -1686,7 +1688,6 @@ function renderKoMatchCard(match, isFinal) {
     ` : ''}
 
     ${saved && !locked ? `<div class="ko-saved-badge">✔ Salvo</div>` : ''}
-    ${!saved && !locked && teamsKnown ? `<div class="ko-unsaved-hint">Preencha o placar e escolha quem avança</div>` : ''}
     ${locked && !teamsKnown ? `<div class="ko-lock-note">🔒 Bloqueado</div>` : ''}
   </div>`;
 }
@@ -1696,16 +1697,39 @@ function selectKoRound(idx) {
   renderKnockoutBracket();
 }
 
+function isKoRoundNeedingWinner(matchId) {
+  // R16 (Segunda Fase) não usa desempate — apenas oitavas em diante
+  const r16Ids = KNOCKOUT_ROUNDS.find(r => r.id === 'r16')?.matches.map(m => m.id) || [];
+  return !r16Ids.includes(matchId);
+}
+
+function isDrawScore(h, a) {
+  return h !== '' && a !== '' && parseInt(h) === parseInt(a);
+}
+
 function onKoInput(id) {
-  // Auto-save só quando placar E vencedor estiverem preenchidos
   const h = document.getElementById(`ko-h-${id}`)?.value;
   const a = document.getElementById(`ko-a-${id}`)?.value;
-  const winnerEl = document.querySelector(`input[name="winner-${id}"]:checked`);
-  if (h !== '' && a !== '' && winnerEl) saveKoGame(id, true);
+  if (h === '' || a === '') return;
+
+  // Mostra/oculta o picker de vencedor dinamicamente conforme o placar
+  const picker = document.getElementById(`wp-${id}`);
+  if (picker) {
+    const needsWinner = isKoRoundNeedingWinner(id) && isDrawScore(h, a);
+    picker.style.display = needsWinner ? 'block' : 'none';
+  }
+
+  // Auto-save: se não for empate (ou for R16), salva direto
+  if (!isDrawScore(h, a) || !isKoRoundNeedingWinner(id)) {
+    saveKoGame(id, true);
+  } else {
+    // Empate: só salva se já tiver winner selecionado
+    const winnerEl = document.querySelector(`input[name="winner-${id}"]:checked`);
+    if (winnerEl) saveKoGame(id, true);
+  }
 }
 
 function onWinnerChange(id) {
-  // Re-estiliza as opções e tenta salvar
   const opts = document.querySelectorAll(`#wp-${id} .ko-winner-opt`);
   opts.forEach(opt => {
     const radio = opt.querySelector('input[type="radio"]');
@@ -1726,23 +1750,27 @@ function saveKoGame(id, silent = false) {
 
   const h = document.getElementById(`ko-h-${id}`)?.value.trim();
   const a = document.getElementById(`ko-a-${id}`)?.value.trim();
-  const winnerEl = document.querySelector(`input[name="winner-${id}"]:checked`);
-  const winner = winnerEl ? winnerEl.value : null;
 
   if (h === '' || a === '') {
     if (!silent) toast('⚠ Preencha o placar!', 'err');
     return;
   }
-  if (!winner) {
-    if (!silent) toast('⚠ Escolha quem avança!', 'err');
-    return;
+
+  // Winner só é obrigatório em empate E fora do R16
+  let winner = null;
+  if (isKoRoundNeedingWinner(id) && isDrawScore(h, a)) {
+    const winnerEl = document.querySelector(`input[name="winner-${id}"]:checked`);
+    winner = winnerEl ? winnerEl.value : null;
+    if (!winner) {
+      if (!silent) toast('⚠ Escolha quem avança!', 'err');
+      return;
+    }
   }
 
   saveKoSc(S.user, id, h, a, winner);
 
   const card = document.getElementById(`ko-card-${id}`);
   if (card) card.classList.add('saved');
-  // Remove hint de não salvo
   const hint = card?.querySelector('.ko-unsaved-hint');
   if (hint) hint.remove();
 
@@ -1770,8 +1798,36 @@ function updateKoProgress() {
    INTEGRAÇÃO: RANKING inclui pontos do mata-mata
 ═══════════════════════════════════════════════════════ */
 
-// Sobrescreve buildRanking para incluir pontos KO
-const _originalBuildRanking = buildRanking;
+// Calcula pontos de um jogo KO
+// - Placar exato: 3 pts (+ winner correto se empate)
+// - Resultado certo (acertou quem avança): 1.5 pts
+// - Errou: 0 pts
+// Funciona SEM winner preenchido (R16 ou palpite sem empate)
+function calcKoPts(palpite, oficial, matchId) {
+  if (!palpite || palpite.h === '' || palpite.a === '') return null;
+  if (!oficial  || oficial.h  === '' || oficial.a  === '') return null;
+
+  const ph = parseInt(palpite.h), pa = parseInt(palpite.a);
+  const oh = parseInt(oficial.h),  oa = parseInt(oficial.a);
+  const needsWinner = isKoRoundNeedingWinner(matchId);
+
+  // Vencedor real
+  const oWinner = oficial.winner || (oh > oa ? 'h' : oh < oa ? 'a' : null);
+  // Vencedor do palpite
+  const pWinner = palpite.winner || (ph > pa ? 'h' : ph < pa ? 'a' : null);
+
+  // Placar exato
+  if (ph === oh && pa === oa) {
+    if (!needsWinner || !oWinner) return 3;           // R16 ou resultado sem empate oficial
+    if (pWinner === oWinner) return 3;                // empate e acertou quem avançou
+    return 1.5;                                       // placar certo mas errou o avanço
+  }
+
+  // Resultado parcial: acertou quem avança
+  if (oWinner && pWinner === oWinner) return 1.5;
+
+  return 0;
+}
 
 function buildRanking() {
   const localUsers = Object.keys(getUsers());
@@ -1797,27 +1853,17 @@ function buildRanking() {
       else                { pending++; }
     });
 
-    // Pontos do mata-mata (lógica especial: empate no placar → verifica winner)
+    // Pontos do mata-mata
     ALL_KO_IDS.forEach(id => {
       const palpite = scores[user] ? scores[user][id] : null;
       const oficial = results[id];
-      if (!palpite || palpite.h === '' || palpite.a === '' || !palpite.winner) return;
-      if (!oficial  || oficial.h  === '' || oficial.a  === '') { pending++; return; }
+      if (!oficial || oficial.h === '' || oficial.a === '') { pending++; return; }
+      if (!palpite || palpite.h === '' || palpite.a === '') { miss++; return; }
 
-      const ph = parseInt(palpite.h), pa = parseInt(palpite.a);
-      const oh = parseInt(oficial.h),  oa = parseInt(oficial.a);
-
-      // Placar exato E vencedor correto = 3 pts
-      if (ph === oh && pa === oa && palpite.winner === oficial.winner) {
-        pts += 3; exact++; return;
-      }
-      // Resultado parcial: acertou quem avança (seja pelo placar ou pelo campo winner)
-      const pWinner = ph > pa ? 'h' : ph < pa ? 'a' : palpite.winner;
-      const oWinner = oficial.winner || (oh > oa ? 'h' : oh < oa ? 'a' : null);
-      if (oWinner && pWinner === oWinner) {
-        pts += 1.5; partial++; return;
-      }
-      miss++;
+      const p = calcKoPts(palpite, oficial, id);
+      if      (p === 3)   { pts += 3;   exact++;   }
+      else if (p === 1.5) { pts += 1.5; partial++; }
+      else                { miss++;                }
     });
 
     const allMatchIds = [...ALL_IDS, ...ALL_KO_IDS];
@@ -1995,8 +2041,9 @@ function renderAdminGames() {
       const hv = of ? of.h : '';
       const av = of ? of.a : '';
       const ow = of ? (of.winner || '') : '';
-      const savedMark = (hv !== '' && av !== '' && ow !== '') ? `<span class="agr-saved">✔ salvo</span>` : '';
+      const savedMark = (hv !== '' && av !== '') ? `<span class="agr-saved">✔ salvo</span>` : '';
       const teamsKnown = teams.h.abbr !== '?' && teams.a.abbr !== '?';
+      const isDrawSaved = hv !== '' && av !== '' && parseInt(hv) === parseInt(av);
 
       html += `<div class="admin-game-row" style="flex-direction:column;align-items:stretch;gap:.5rem">
         <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
@@ -2005,16 +2052,18 @@ function renderAdminGames() {
             <div class="agr-date">${g.dt} · ${g.tm} — ${g.label}</div>
           </div>
           <div class="agr-score">
-            <input class="agr-sin" type="number" min="0" max="30" id="of-h-${g.id}" value="${hv}" placeholder="—">
+            <input class="agr-sin" type="number" min="0" max="30" id="of-h-${g.id}" value="${hv}" placeholder="—"
+              oninput="onAdminKoScoreInput('${g.id}')">
             <span class="agr-sep">×</span>
-            <input class="agr-sin" type="number" min="0" max="30" id="of-a-${g.id}" value="${av}" placeholder="—">
+            <input class="agr-sin" type="number" min="0" max="30" id="of-a-${g.id}" value="${av}" placeholder="—"
+              oninput="onAdminKoScoreInput('${g.id}')">
             <button class="btn-save-result" onclick="saveOfficialKoResult('${g.id}')">Salvar</button>
             ${savedMark}
           </div>
         </div>
         ${teamsKnown ? `
-        <div class="agr-winner-row">
-          <span class="agr-winner-label">🏆 Vencedor oficial:</span>
+        <div class="agr-winner-row" id="agr-wr-${g.id}" style="display:${isDrawSaved ? 'flex' : 'none'}">
+          <span class="agr-winner-label">🏆 Vencedor:</span>
           <label class="agr-winner-opt${ow === 'h' ? ' sel' : ''}">
             <input type="radio" name="agr-w-${g.id}" value="h" ${ow === 'h' ? 'checked' : ''}
               onchange="onAdminWinnerChange('${g.id}')">
@@ -2025,8 +2074,8 @@ function renderAdminGames() {
               onchange="onAdminWinnerChange('${g.id}')">
             ${teams.a.f} ${teams.a.n}
           </label>
-          <span class="agr-winner-hint">(use quando houver pênaltis/prorrogação)</span>
-        </div>` : `<div class="agr-winner-hint" style="padding-left:.3rem">Times ainda não definidos</div>`}
+          <span class="agr-winner-hint">(pênaltis/prorrogação)</span>
+        </div>` : ''}
       </div>`;
     });
     container.innerHTML = html;
@@ -2069,44 +2118,51 @@ function renderAdminGames() {
 ═══════════════════════════════════════════════════════ */
 
 function onAdminWinnerChange(matchId) {
-  // Estiliza opção selecionada
-  const opts = document.querySelectorAll(`label[class*="agr-winner-opt"]`);
   const radios = document.querySelectorAll(`input[name="agr-w-${matchId}"]`);
-  radios.forEach(r => {
-    r.closest('label').classList.toggle('sel', r.checked);
-  });
+  radios.forEach(r => r.closest('label').classList.toggle('sel', r.checked));
 }
 
-async function saveOfficialKoResult(matchId) {
+function onAdminKoScoreInput(matchId) {
   const h = document.getElementById(`of-h-${matchId}`)?.value;
   const a = document.getElementById(`of-a-${matchId}`)?.value;
-  const winnerEl = document.querySelector(`input[name="agr-w-${matchId}"]:checked`);
-  const winner = winnerEl ? winnerEl.value : null;
+  const winnerRow = document.getElementById(`agr-wr-${matchId}`);
+  if (winnerRow) {
+    const isDraw = h !== '' && a !== '' && parseInt(h) === parseInt(a);
+    winnerRow.style.display = isDraw ? 'flex' : 'none';
+  }
+}
 
+function saveOfficialKoResult(matchId) {
+  const h = document.getElementById(`of-h-${matchId}`)?.value;
+  const a = document.getElementById(`of-a-${matchId}`)?.value;
   if (h === '' || a === '') { toast('⚠ Preencha os dois placares!', 'err'); return; }
-  if (!winner) { toast('⚠ Escolha o vencedor!', 'err'); return; }
 
-  // Salva localmente (com campo winner extra)
+  const isDraw = parseInt(h) === parseInt(a);
+  let winner = null;
+  if (isDraw) {
+    const winnerEl = document.querySelector(`input[name="agr-w-${matchId}"]:checked`);
+    winner = winnerEl ? winnerEl.value : null;
+    if (!winner) { toast('⚠ Empate — escolha o vencedor!', 'err'); return; }
+  }
+
+  // Salva localmente imediatamente (sem await — resposta instantânea)
   const results = getOfficialResults();
   results[matchId] = { h, a, winner };
   localStorage.setItem(RESULTS_KEY, JSON.stringify(results));
-
-  // Atualiza cloudState em memória
   if (!cloudState.oficiais) cloudState.oficiais = {};
   cloudState.oficiais[matchId] = { h, a, winner };
 
-  // Envia ao Google Sheets (o campo winner vai como dado extra no JSON)
-  if (GOOGLE_SCRIPT_URL) {
-    try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'save_official', match_id: matchId, score_home: h, score_away: a, winner })
-      });
-    } catch (e) { console.warn('Erro ao salvar resultado KO:', e); }
-  }
-
+  // Atualiza UI imediatamente
   renderAdminGames();
   renderRanking();
   toast('✔ Resultado salvo!', 'ok');
+
+  // Envia ao Google Sheets em background (sem bloquear)
+  if (GOOGLE_SCRIPT_URL) {
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'save_official', match_id: matchId, score_home: h, score_away: a, winner })
+    }).catch(e => console.warn('Sync KO result:', e));
+  }
 }
