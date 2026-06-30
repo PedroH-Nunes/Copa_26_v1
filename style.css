@@ -1103,6 +1103,136 @@ body::after{
   padding: .5rem .5rem .2rem;
 }
 
+/* ─── WINNER PICKER (usuário) ─── */
+.ko-winner-picker {
+  margin-top: .6rem;
+  padding-top: .6rem;
+  border-top: 1px dashed rgba(0,212,184,.2);
+}
+.ko-winner-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: .45rem;
+}
+.ko-winner-hint {
+  color: var(--text3);
+  font-weight: 400;
+  font-size: .6rem;
+  letter-spacing: .5px;
+  text-transform: none;
+}
+.ko-winner-options {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.ko-winner-opt {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .4rem .75rem;
+  background: rgba(255,255,255,.04);
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .18s;
+  font-size: .82rem;
+  font-weight: 600;
+  flex: 1;
+  min-width: 100px;
+  justify-content: center;
+}
+.ko-winner-opt input[type="radio"] { display: none; }
+.ko-winner-opt:hover {
+  border-color: rgba(0,212,184,.4);
+  background: rgba(0,212,184,.06);
+}
+.ko-winner-opt.selected {
+  border-color: var(--teal);
+  background: rgba(0,212,184,.12);
+  color: var(--teal);
+  box-shadow: 0 0 10px rgba(0,212,184,.15);
+}
+.ko-wopt-flag { font-size: 1.2rem; }
+.ko-wopt-name { font-size: .78rem; }
+
+.ko-winner-chosen {
+  font-size: .68rem;
+  color: var(--teal);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: .8px;
+  margin-top: .3rem;
+}
+.ko-official-winner {
+  font-size: .7rem;
+  color: #00d455;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: .5px;
+  margin-top: .25rem;
+}
+.ko-official-winner.pending { color: var(--text3); }
+
+.ko-unsaved-hint {
+  font-size: .62rem;
+  color: var(--text3);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: .5px;
+  text-align: center;
+  margin-top: .4rem;
+  font-style: italic;
+}
+
+/* ─── ADMIN: winner row ─── */
+.agr-winner-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+  padding: .3rem .5rem;
+  background: rgba(0,212,184,.04);
+  border-radius: 7px;
+  border: 1px solid rgba(0,212,184,.1);
+}
+.agr-winner-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.agr-winner-opt {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .28rem .6rem;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: .78rem;
+  font-weight: 600;
+  transition: all .15s;
+}
+.agr-winner-opt input { display: none; }
+.agr-winner-opt:hover { border-color: rgba(0,212,184,.4); }
+.agr-winner-opt.sel {
+  border-color: var(--teal);
+  background: rgba(0,212,184,.12);
+  color: var(--teal);
+}
+.agr-winner-hint {
+  font-size: .6rem;
+  color: var(--text3);
+  font-style: italic;
+}
+
 /* ─── FINAIS: lado a lado ─── */
 .ko-finals-wrap {
   display: grid;
