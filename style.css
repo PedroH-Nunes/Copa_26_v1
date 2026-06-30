@@ -1067,6 +1067,42 @@ body::after{
   margin-top: .35rem;
 }
 
+/* ─── RANKING DETAIL: títulos de seção ─── */
+.detail-section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 2.5px;
+  color: var(--gold);
+  padding: 1rem .5rem .4rem;
+  margin-top: .3rem;
+  border-top: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.detail-section-title:first-child {
+  border-top: none;
+  padding-top: .2rem;
+}
+.ko-section-title {
+  color: var(--teal);
+  background: rgba(0,212,184,.05);
+  border-radius: 8px;
+  padding: .6rem .7rem;
+  margin: .6rem 0 .2rem;
+  border: 1px solid rgba(0,212,184,.15);
+  border-top: 1px solid rgba(0,212,184,.15);
+}
+.detail-ko-phase {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: .5rem .5rem .2rem;
+}
+
 /* ─── FINAIS: lado a lado ─── */
 .ko-finals-wrap {
   display: grid;
