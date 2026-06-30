@@ -1,94 +1,8 @@
 /* ═══════════════════════════════════════════════════════
    BACKEND — GOOGLE APPS SCRIPT
    ───────────────────────────────────────────────────────
-   Código atualizado do Apps Script com suporte a usuários, 
-   palpites, painel admin e sem trava global:
-   ─────────────────────────────────────────────────────────
-   function doPost(e) {
-     try {
-       const data = JSON.parse(e.postData.contents);
-       const ss = SpreadsheetApp.getActiveSpreadsheet();
-       
-       if (data.action === 'login') {
-         const sheetUsers = ss.getSheetByName('Usuarios') || ss.insertSheet('Usuarios');
-         const usersData = sheetUsers.getDataRange().getValues();
-         const userRow = usersData.find(r => r[0] === data.user);
-         if (!userRow) sheetUsers.appendRow([data.user, data.passHash, new Date().toISOString()]);
-         return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
-       }
-
-       if (data.action === 'save_score') {
-         const sheetPalpites = ss.getSheetByName('Palpites') || ss.insertSheet('Palpites');
-         const rows = sheetPalpites.getDataRange().getValues();
-         const idx = rows.findIndex(r => r[0] === data.user && r[1] === data.match_id);
-         const row = [data.user, data.match_id, data.score_home, data.score_away, new Date().toISOString()];
-         if (idx !== -1) sheetPalpites.getRange(idx + 1, 1, 1, 5).setValues([row]);
-         else sheetPalpites.appendRow(row);
-         return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
-       }
-
-       if (data.action === 'save_official') {
-         const sheetOficiais = ss.getSheetByName('ResultadosOficiais') || ss.insertSheet('ResultadosOficiais');
-         const rows = sheetOficiais.getDataRange().getValues();
-         const idx = rows.findIndex(r => r[0] === data.match_id);
-         const row = [data.match_id, data.score_home, data.score_away, new Date().toISOString()];
-         if (idx !== -1) sheetOficiais.getRange(idx + 1, 1, 1, 4).setValues([row]);
-         else sheetOficiais.appendRow(row);
-         return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
-       }
-       return ContentService.createTextOutput(JSON.stringify({ ok: false })).setMimeType(ContentService.MimeType.JSON);
-     } catch (error) {
-       return ContentService.createTextOutput(JSON.stringify({ ok: false, error: error.message })).setMimeType(ContentService.MimeType.JSON);
-     }
-   }
-   
-   function doGet(e) {
-     try {
-       const ss = SpreadsheetApp.getActiveSpreadsheet();
-       
-       const sheetPalpites = ss.getSheetByName('Palpites');
-       const scores = {};
-       if (sheetPalpites) {
-         const dataPalpites = sheetPalpites.getDataRange().getValues();
-         if (dataPalpites.length > 1) {
-           const [, ...rowsPalpites] = dataPalpites;
-           rowsPalpites.forEach(([user, match_id, h, a]) => {
-             if (!user) return; 
-             if (!scores[user]) scores[user] = {};
-             scores[user][match_id] = { h: String(h), a: String(a) };
-           });
-         }
-       }
-       
-       const sheetOficiais = ss.getSheetByName('ResultadosOficiais');
-       const oficiais = {};
-       if (sheetOficiais) {
-         const dataOficiais = sheetOficiais.getDataRange().getValues();
-         if (dataOficiais.length > 0) {
-           dataOficiais.forEach(([match_id, h, a]) => {
-             if (!match_id) return;
-             oficiais[match_id] = { h: String(h), a: String(a) };
-           });
-         }
-       }
-
-       const sheetUsers = ss.getSheetByName('Usuarios');
-       const usuarios = [];
-       if (sheetUsers) {
-         const dataUsers = sheetUsers.getDataRange().getValues();
-         dataUsers.forEach((r, i) => { 
-           if(i > 0 && r[0]) usuarios.push(r[0]); 
-           else if (i === 0 && r[0] !== 'Nome' && r[0]) usuarios.push(r[0]); 
-         });
-       }
-
-       return ContentService.createTextOutput(JSON.stringify({ 
-         palpites: scores, 
-         oficiais: oficiais,
-         usuarios: [...new Set(usuarios)]
-       })).setMimeType(ContentService.MimeType.JSON);
-     } catch (error) { return ContentService.createTextOutput(JSON.stringify({ error: error.message })).setMimeType(ContentService.MimeType.JSON); }
-   }
+   O código real do backend está no arquivo Code.gs.
+   Este bloco é apenas referência histórica.
 ═══════════════════════════════════════════════════════ */
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfCRnqBItqDumAQUMHiyLHOiacaiYSJsPYe2viMiG2udlM-dnNNs_mKVxGatIq1QtK3g/exec'; // ← URL do Apps Script
 
@@ -119,7 +33,7 @@ const GROUPS = {
   K:{teams:[{f:'🇵🇹',n:'Portugal'},{f:'🇨🇩',n:'RD Congo'},{f:'🇺🇿',n:'Uzbequistão'},{f:'🇨🇴',n:'Colômbia'}]},
   L:{teams:[{f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra'},{f:'🇭🇷',n:'Croácia'},{f:'🇬🇭',n:'Gana'},{f:'🇵🇦',n:'Panamá'}]},
 };
- 
+
 const STIMG = {
   'Estádio Azteca':'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Azteca_2016.jpg/640px-Azteca_2016.jpg',
   'Estádio Akron':'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Estadio_Akron_%282018%29.jpg/640px-Estadio_Akron_%282018%29.jpg',
@@ -139,7 +53,7 @@ const STIMG = {
   'Arrowhead Stadium':'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Arrowhead_Stadium_2013.jpg/640px-Arrowhead_Stadium_2013.jpg',
   'Camping World Stadium':'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Camping_World_Stadium_2016.jpg/640px-Camping_World_Stadium_2016.jpg',
 };
- 
+
 const MATCHES = {
   A:[
     {r:1,games:[
@@ -310,10 +224,10 @@ const MATCHES = {
     ]},
   ],
 };
- 
+
 const ALL_IDS = [];
 Object.values(MATCHES).forEach(rds=>rds.forEach(rd=>rd.games.forEach(g=>ALL_IDS.push(g.id))));
- 
+
 /* ═══════════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════════ */
@@ -327,9 +241,9 @@ let isSyncing = false;
 const MON_MAP = { Jan:1, Fev:2, Mar:3, Abr:4, Mai:5, Jun:6, Jul:7, Ago:8, Set:9, Out:10, Nov:11, Dez:12 };
 
 function gameKickoff(g) {
-  const parts = g.dt.split('/');           
+  const parts = g.dt.split('/');
   const day   = parts[0].padStart(2,'0');
-  const mon   = parts[1].split(' ')[0];    
+  const mon   = parts[1].split(' ')[0];
   const month = String(MON_MAP[mon] || 6).padStart(2,'0');
   const hour  = String(parseInt(g.tm)).padStart(2,'0');
   return new Date(`2026-${month}-${day}T${hour}:00:00-03:00`);
@@ -338,29 +252,35 @@ function gameKickoff(g) {
 function gameIsLocked(g) {
   return new Date() >= gameKickoff(g);
 }
- 
+
 /* ═══════════════════════════════════════════════════════
    STORAGE LOCAL (offline-safe, instantâneo)
+   ───────────────────────────────────────────────────────
+   IMPORTANTE: este storage local NÃO é a fonte de verdade
+   do ranking. Ele serve só como (1) sessão de login,
+   (2) fila de sincronização offline e (3) cache de leitura
+   instantânea. A fonte de verdade real é sempre o Google
+   Sheets (cloudState), carregado via loadFromCloud().
 ═══════════════════════════════════════════════════════ */
 function store(){return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}
 function save(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d))}
- 
+
 function hashPw(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h)+s.charCodeAt(i)|0;return h.toString(36)}
- 
+
 function getUsers(){return store().users||{}}
 function saveUsers(u){const d=store();d.users=u;save(d)}
 function getScores(){return store().scores||{}}
 function saveScores(sc){const d=store();d.scores=sc;save(d)}
- 
+
 /* session persistence */
 function getSession(){return localStorage.getItem(STORAGE_KEY+'_session')||null}
 function saveSession(name){localStorage.setItem(STORAGE_KEY+'_session',name)}
 function clearSession(){localStorage.removeItem(STORAGE_KEY+'_session')}
- 
+
 /* sync queue persistence (para não perder dados offline) */
 function getSyncQueue(){return JSON.parse(localStorage.getItem(STORAGE_KEY+'_queue')||'[]')}
 function saveSyncQueue(q){localStorage.setItem(STORAGE_KEY+'_queue',JSON.stringify(q))}
- 
+
 /* ═══════════════════════════════════════════════════════
    BACKEND — GOOGLE APPS SCRIPT SYNC
 ═══════════════════════════════════════════════════════ */
@@ -370,29 +290,32 @@ function setSyncStatus(state, msg) {
   el.className = 'sync-status ' + state;
   el.textContent = msg;
 }
- 
-async function syncToCloud(user, matchId, h, a) {
+
+// 🔴 CORREÇÃO: agora aceita e envia também o campo "winner" (necessário
+// para o mata-mata, onde o usuário escolhe quem avança em caso de empate).
+// Sem isso o backend nunca recebia esse dado e o palpite ficava incompleto.
+async function syncToCloud(user, matchId, h, a, winner) {
   if (!GOOGLE_SCRIPT_URL) return; // sem URL configurada, só local
- 
-  const payload = {action:'save_score', user, match_id:matchId, score_home:h, score_away:a};
-  
+
+  const payload = {action:'save_score', user, match_id:matchId, score_home:h, score_away:a, winner: winner || ''};
+
   // Adiciona na fila
   const q = getSyncQueue();
   const existing = q.findIndex(x => x.user === user && x.match_id === matchId);
   if (existing >= 0) q[existing] = payload; else q.push(payload);
   saveSyncQueue(q);
- 
+
   processQueue();
 }
- 
+
 async function processQueue() {
   if (isSyncing || !GOOGLE_SCRIPT_URL) return;
   const q = getSyncQueue();
   if (!q.length) return;
- 
+
   isSyncing = true;
   setSyncStatus('syncing', '🔄 Sincronizando...');
- 
+
   for (let i = 0; i < q.length; i++) {
     try {
       await fetch(GOOGLE_SCRIPT_URL, {
@@ -409,36 +332,36 @@ async function processQueue() {
       break;
     }
   }
- 
+
   isSyncing = false;
- 
+
   if (getSyncQueue().length === 0) {
     setSyncStatus('synced', '✔ Sincronizado');
     setTimeout(() => setSyncStatus('', ''), 3000);
-    
+
     // GATILHO: Assim que terminar de salvar seus dados, já puxa as atualizações de todo mundo
-    loadFromCloud(); 
+    loadFromCloud();
   } else {
     setSyncStatus('error', '⚠ Sem conexão — salvo localmente');
   }
 }
- 
+
 // Ao voltar online, processa a fila
 window.addEventListener('online', () => {
   setSyncStatus('syncing', '🔄 Reconectado, sincronizando...');
   processQueue();
 });
- 
-// Nova Função de Carregamento Focada na Nuvem como Verdade
+
+// Função de Carregamento Focada na Nuvem como Verdade
 async function loadFromCloud() {
   if (!GOOGLE_SCRIPT_URL || isFetchingCloud) return;
   isFetchingCloud = true; // Bloqueia novas chamadas enquanto esta não terminar
-  
+
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL + '?action=get_scores&t=' + Date.now());
     if (!res.ok) return;
     const data = await res.json();
-    
+
     // Atualiza estado em memória (Fonte de verdade)
     if (data.palpites) cloudState.scores   = data.palpites;
     if (data.oficiais) cloudState.oficiais = data.oficiais;
@@ -456,13 +379,13 @@ async function loadFromCloud() {
 
     cloudLoaded = true;
     renderPlayersLogin();
-    
+
     const rEl = document.getElementById('s-ranking');
     if (rEl && rEl.classList.contains('active')) renderRanking();
-    
+
     const gEl = document.getElementById('s-groups');
     if (gEl && gEl.classList.contains('active')) renderGroupsGrid();
-    
+
   } catch(e) {
     console.warn('[Bolão] Cloud offline:', e.message);
   } finally {
@@ -473,7 +396,7 @@ async function loadFromCloud() {
 // 1. Polling mais rápido (10s)
 setInterval(loadFromCloud, 10000);
 
-// 2. MÁGICA DO TEMPO REAL: Atualiza ao focar na aba ou ligar a tela
+// 2. Atualiza ao focar na aba ou ligar a tela
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') loadFromCloud();
 });
@@ -484,7 +407,7 @@ window.addEventListener('storage', (e) => {
     loadFromCloud();
   }
 });
- 
+
 /* ═══════════════════════════════════════════════════════
    AUTH
 ═══════════════════════════════════════════════════════ */
@@ -495,33 +418,43 @@ function togglePw(inputId,btnId){
   else{el.type='password';btn.textContent='👁';}
 }
 
-// 🔴 NOVA FUNÇÃO PARA ENVIAR O LOGIN PRO GOOGLE SHEETS
+// 🔴 CORREÇÃO: antes essa função era "dispara e esquece" (sem retry).
+// Se a única tentativa falhasse (rede instável, lock do Sheets ocupado),
+// o usuário nunca era registrado na aba Usuarios e sumia do ranking
+// mesmo tendo palpites salvos corretamente. Agora tenta até 3x.
 async function syncLoginToCloud(username, passHash) {
   if (!GOOGLE_SCRIPT_URL) return;
-  try {
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'login', user: username, passHash: passHash })
-    });
-  } catch (error) {
-    console.error("Erro ao sincronizar usuário no cloud:", error);
+  const payload = { action: 'login', user: username, passHash: passHash };
+
+  for (let tentativa = 0; tentativa < 3; tentativa++) {
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      return; // sucesso
+    } catch (error) {
+      console.warn(`[Bolão] Tentativa ${tentativa + 1}/3 de registrar usuário falhou:`, error.message);
+      await new Promise(r => setTimeout(r, 1500 * (tentativa + 1)));
+    }
   }
+  console.error('[Bolão] Falha ao registrar usuário na nuvem após 3 tentativas:', username);
 }
- 
+
 function doLogin(){
   const name=document.getElementById('inp-name').value.trim();
   const pw=document.getElementById('inp-pw').value;
   const err=document.getElementById('login-err');
   const info=document.getElementById('login-info');
   err.textContent='';info.textContent='';
- 
+
   if(!name){err.textContent='Digite seu nome no bolão.';return;}
   if(pw.length<3){err.textContent='Senha deve ter pelo menos 3 caracteres.';return;}
- 
+
   const users=getUsers();
   const hash=hashPw(pw);
- 
+
   if(users[name]){
     if(users[name].pw!==hash){err.textContent='Senha incorreta para este nome.';return;}
     info.textContent='Bem-vindo de volta, '+name+'! 👋';
@@ -538,17 +471,17 @@ function doLogin(){
   saveSession(name);
   setTimeout(()=>showGroups(),500);
 }
- 
+
 document.getElementById('inp-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('inp-name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('inp-pw').focus();});
- 
+
 function doLogout(){S.user=null;clearSession();show('s-login');renderPlayersLogin();}
- 
+
 function fillName(n){
   document.getElementById('inp-name').value=n;
   document.getElementById('inp-pw').focus();
 }
- 
+
 /* ═══════════════════════════════════════════════════════
    SCORES HELPERS
 ═══════════════════════════════════════════════════════ */
@@ -557,33 +490,33 @@ function getSc(user,id){
   const sc = cloudLoaded ? cloudState.scores : getScores();
   return (sc[user]&&sc[user][id]!=null)?sc[user][id]:null;
 }
- 
+
 function saveSc(user,id,h,a){
   // 1. Salva localmente (imediato, não depende de rede)
   const sc=getScores();
   if(!sc[user])sc[user]={};
   sc[user][id]={h,a};
   saveScores(sc);
-  
+
   // Atualiza também o state em memória de forma síncrona
   if(!cloudState.scores[user]) cloudState.scores[user] = {};
   cloudState.scores[user][id] = {h, a};
- 
+
   // 2. Dispara sincronização em background (não bloqueia UI)
   syncToCloud(user, id, h, a);
 }
- 
+
 function countFilled(user){
   return ALL_IDS.filter(id=>{const s=getSc(user,id);return s&&s.h!==''&&s.a!==''}).length;
 }
- 
+
 function userStatus(user){
   const n=countFilled(user);
   if(n===ALL_IDS.length)return'done';
   if(n>0)return'partial';
   return'empty';
 }
- 
+
 function groupFillCount(letter,user){
   let total=0,done=0;
   MATCHES[letter].forEach(rd=>rd.games.forEach(g=>{
@@ -593,7 +526,7 @@ function groupFillCount(letter,user){
   }));
   return{total,done};
 }
- 
+
 /* ═══════════════════════════════════════════════════════
    PLAYERS LOGIN PANEL
 ═══════════════════════════════════════════════════════ */
@@ -618,7 +551,7 @@ function renderPlayersLogin(){
 }
 renderPlayersLogin();
 setInterval(renderPlayersLogin, 15000);
- 
+
 // Auto-login por sessão
 (function(){
   const saved=getSession();
@@ -627,24 +560,18 @@ setInterval(renderPlayersLogin, 15000);
     showGroups();
   }
 })();
- 
+
 // Carrega do cloud em background
 loadFromCloud();
- 
+
 /* ═══════════════════════════════════════════════════════
    SCREEN SWITCHER
 ═══════════════════════════════════════════════════════ */
 function show(id){
   document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));
   window.scrollTo({top:0,behavior:'instant'});
-  
-  // Gatilho visual: Força a atualização dos dados do Google sempre que abrir o Ranking
-  if(id === 's-ranking') {
-    setSyncStatus('syncing', '🔄 Carregando ranking...');
-    loadFromCloud().then(() => setSyncStatus('', ''));
-  }
 }
- 
+
 /* ═══════════════════════════════════════════════════════
    GROUPS SCREEN
 ═══════════════════════════════════════════════════════ */
@@ -652,21 +579,21 @@ function showGroups(){
   const av=S.user?S.user[0].toUpperCase():'?';
   document.getElementById('avatar-g').textContent=av;
   document.getElementById('uname-g').textContent=S.user||'';
-  
+
   const lockChip = document.getElementById('lock-chip-g');
   if(lockChip) lockChip.style.display = 'none';
 
   renderGroupsGrid();
   show('s-groups');
 }
- 
+
 function renderGroupsGrid(){
   const grid=document.getElementById('groups-grid');
   const total=ALL_IDS.length;
   const done=countFilled(S.user);
   document.getElementById('global-prog-label').textContent=`${done} / ${total} palpites preenchidos`;
   document.getElementById('global-prog-fill').style.width=`${(done/total)*100}%`;
- 
+
   grid.innerHTML=Object.entries(GROUPS).map(([letter,data])=>{
     const {total:gt,done:gd}=groupFillCount(letter,S.user);
     const st=gd===gt?'done':gd>0?'partial':'';
@@ -687,7 +614,7 @@ function renderGroupsGrid(){
     </div>`;
   }).join('');
 }
- 
+
 /* ═══════════════════════════════════════════════════════
    TRAIL SCREEN
 ═══════════════════════════════════════════════════════ */
@@ -696,31 +623,31 @@ function openGroup(letter){
   S.rounds=MATCHES[letter];
   showTrail();
 }
- 
+
 function showTrail(){
   document.getElementById('tr-title').textContent=`GRUPO ${S.group}`;
-  
+
   const lockChip = document.getElementById('lock-chip-tr');
   if(lockChip) lockChip.style.display = 'none';
-  
+
   renderTrail();
   show('s-trail');
 }
- 
+
 function rdDone(ri){
   return S.rounds[ri].games.every(g=>{const s=getSc(S.user,g.id);return s&&s.h!==''&&s.a!==''});
 }
- 
+
 function renderTrail(){
   const rounds=S.rounds;
   let ai=0;
   for(let i=0;i<rounds.length;i++){if(rdDone(i))ai=i+1;else{ai=i;break;}}
   if(rounds.every((_,i)=>rdDone(i)))ai=rounds.length-1;
   S.round=ai+1;
- 
+
   const nc=['#f5c518','#00d4b8','#e84040'];
   const trpath=document.getElementById('trpath');
- 
+
   trpath.innerHTML=rounds.map((rd,i)=>{
     const done=rdDone(i);
     const active=i===ai&&!done;
@@ -729,14 +656,14 @@ function renderTrail(){
     const nClass=done?'done':active?'active':'';
     const cClass=done?'done':active?'active':'';
     const isRight=i%2!==0;
- 
+
     const matchup=rd.games.map(g=>`${g.h.f} ${g.h.n.split(' ')[0]} × ${g.a.f} ${g.a.n.split(' ')[0]}`).join('\n');
     const stKey=rd.games[0].st;
     const imgSrc=STIMG[stKey]||'';
- 
+
     return`<div class="trail-step${isRight?' right':''}" style="--c:${c}">
       ${!isRight?`<div class="tnode ${nClass}" style="border-color:${c}">${nl}</div>`:''}
-      <div class="tcard ${cClass}" 
+      <div class="tcard ${cClass}"
            style="${active?`border-color:rgba(0,212,184,.3)`:done?`border-color:rgba(0,166,62,.3)`:''}"
            onclick="openRoundFromTrail(${i})"
            role="button"
@@ -751,54 +678,54 @@ function renderTrail(){
       ${isRight?`<div class="tnode ${nClass}" style="border-color:${c}">${nl}</div>`:''}
     </div>`;
   }).join('');
- 
+
   document.getElementById('btn-act').textContent=`▶ PREENCHER RODADA ${S.round}`;
 }
- 
+
 function openRoundFromTrail(roundIndex) {
   S.round = roundIndex + 1;
   enterRound();
 }
- 
+
 function selRound(i){
   S.round=i+1;
   document.getElementById('btn-act').textContent=`▶ RODADA ${S.round}`;
 }
- 
+
 function enterRound(){
   renderGames();
   show('s-games');
-  
+
   const lnGm = document.getElementById('ln-gm');
   if(lnGm) lnGm.style.display = 'none';
-  
+
   const lcGm = document.getElementById('lock-chip-gm');
   if(lcGm) lcGm.style.display = 'none';
 }
- 
+
 /* ═══════════════════════════════════════════════════════
    GAMES SCREEN
 ═══════════════════════════════════════════════════════ */
 function renderGames(){
   const letter=S.group;
   const rd=S.rounds[S.round-1];
- 
+
   document.getElementById('gt-title').textContent=`GRUPO ${letter} · R${S.round}`;
   document.getElementById('rtag').textContent=`Rodada ${S.round}`;
   document.getElementById('rtitle').textContent=`Grupo ${letter} — Rodada ${S.round}`;
- 
+
   const list=document.getElementById('glist');
-  
+
   list.innerHTML=rd.games.map((g,gi)=>{
     const id=g.id;
     // O bloqueio agora é individual
     const lk = gameIsLocked(g);
-    
+
     const sc = getSc(S.user, id);
     const hv=sc?sc.h:'';
     const av=sc?sc.a:'';
     const saved=hv!==''&&av!=='';
-    
+
     return`<div class="game-card${saved?' saved':''}" id="gc-${id}">
       <div class="meta-row">
         <span class="mtag">📅 ${g.dt}</span>
@@ -827,18 +754,18 @@ function renderGames(){
       </div>
     </div>`;
   }).join('');
- 
+
   updProg();
   document.getElementById('bprev').disabled=S.round<=1;
   document.getElementById('bnext').disabled=S.round>=S.rounds.length;
 }
- 
+
 function onInput(id){
   const h=document.getElementById(`h-${id}`).value;
   const a=document.getElementById(`a-${id}`).value;
   if(h!==''&&a!=='')saveGame(id,0,true);
 }
- 
+
 function saveGame(id,gi,silent=false){
   // Checagem extra de segurança no momento do clique
   const g = S.rounds[S.round-1].games.find(x => x.id === id);
@@ -847,7 +774,7 @@ function saveGame(id,gi,silent=false){
   const h=document.getElementById(`h-${id}`).value.trim();
   const a=document.getElementById(`a-${id}`).value.trim();
   const al=document.getElementById(`al-${id}`);
-  
+
   if(h===''||a===''){
     al.style.display='block';
     al.style.animation='none';
@@ -855,21 +782,21 @@ function saveGame(id,gi,silent=false){
     setTimeout(()=>al.style.display='none',3500);
     return;
   }
-  
+
   al.style.display='none';
   saveSc(S.user,id,h,a);
- 
+
   const card=document.getElementById(`gc-${id}`);
   card.classList.add('saved');
   const sb=document.getElementById(`sb-${id}`);
   if(sb)sb.style.display='inline-flex';
- 
+
   if(!silent)toast('✔ Placar salvo!','ok');
   updProg();
   renderPlayersLogin();
   checkAuto();
 }
- 
+
 /* ═══════════════════════════════════════════════════════
    POPUP "VAMOS CONTINUAR?" — lógica central
 ═══════════════════════════════════════════════════════ */
@@ -878,9 +805,9 @@ function checkAuto(){
   const rd = S.rounds[S.round-1];
   const roundDone = rd.games.every(g=>{const s=getSc(S.user,g.id);return s&&s.h!==''&&s.a!==''});
   if (!roundDone) return;
- 
+
   const isLastRound = S.round >= S.rounds.length;
- 
+
   if (!isLastRound) {
     autoPopupTimer = setTimeout(() => {
       showContinuePopup('round');
@@ -896,7 +823,7 @@ function checkAuto(){
     }
   }
 }
- 
+
 function showContinuePopup(mode) {
   popupMode = mode;
   const overlay  = document.getElementById('continue-overlay');
@@ -905,9 +832,9 @@ function showContinuePopup(mode) {
   const title    = document.getElementById('continue-title');
   const sub      = document.getElementById('continue-sub');
   const ctaText  = document.getElementById('continue-cta-text');
- 
+
   modal.classList.remove('next-group');
- 
+
   if (mode === 'round') {
     icon.textContent    = '🎉';
     title.textContent   = 'Vamos continuar?';
@@ -926,10 +853,10 @@ function showContinuePopup(mode) {
     sub.textContent     = 'Todos os grupos preenchidos!';
     ctaText.textContent = 'Ver resumo';
   }
- 
+
   overlay.style.display = 'flex';
 }
- 
+
 function handleContinue() {
   closeContinue();
   if (popupMode === 'round') {
@@ -941,19 +868,19 @@ function handleContinue() {
     showGroups();
   }
 }
- 
+
 function closeContinue() {
   document.getElementById('continue-overlay').style.display = 'none';
   clearTimeout(autoPopupTimer);
 }
- 
+
 document.getElementById('continue-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeContinue();
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeContinue();
 });
- 
+
 /* ═══════════════════════════════════════════════════════
    NAVEGAÇÃO ENTRE GRUPOS
 ═══════════════════════════════════════════════════════ */
@@ -967,7 +894,7 @@ function goToNextGroup() {
     showGroups();
   }
 }
- 
+
 /* ═══════════════════════════════════════════════════════
    PROGRESS BAR & NAVEGAÇÃO DE RODADAS
 ═══════════════════════════════════════════════════════ */
@@ -976,13 +903,13 @@ function updProg(){
   const total=rd.games.length;
   const done=rd.games.filter(g=>{const s=getSc(S.user,g.id);return s&&s.h!==''&&s.a!==''}).length;
   const pct=total?Math.round(done/total*100):0;
- 
+
   document.getElementById('pglbl').textContent=`${done}/${total} salvos`;
   document.getElementById('pg-pct').textContent=`${pct}%`;
   document.getElementById('pgfill').style.width=`${pct}%`;
- 
+
   const bnext = document.getElementById('bnext');
- 
+
   if (S.round === S.rounds.length) {
     if (done === total) {
       const keys = Object.keys(GROUPS);
@@ -1004,13 +931,13 @@ function updProg(){
     bnext.classList.remove('btn-destaque');
   }
 }
- 
+
 function chRound(d){
   S.round+=d;
   renderGames();
   window.scrollTo({top:0,behavior:'smooth'});
 }
- 
+
 /* ═══════════════════════════════════════════════════════
    TOAST
 ═══════════════════════════════════════════════════════ */
@@ -1022,16 +949,15 @@ function toast(msg,type='ok'){
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>el.className='',2500);
 }
- 
+
 /* ═══════════════════════════════════════════════════════
    RANKING & RESULTADOS OFICIAIS
 ═══════════════════════════════════════════════════════ */
 const RESULTS_KEY = 'bolao2026_results';
 const ADMIN_PW_HASH = hashPw('admin123'); // senha padrão para testes
- 
+
 function getOfficialResults(){return JSON.parse(localStorage.getItem(RESULTS_KEY)||'{}')}
 
-// 🔴 FUNÇÃO CORRIGIDA DO ADMIN 
 async function saveOfficialResult(matchId, h, a){
   // 1. Puxa os resultados oficiais locais corretamente e salva
   const results = getOfficialResults();
@@ -1055,69 +981,45 @@ async function saveOfficialResult(matchId, h, a){
     console.error("Erro ao sincronizar resultado oficial:", error);
   }
 }
- 
+
 function calcPoints(palpite, oficial){
-  if(!palpite || palpite.h==='' || palpite.a==='') return null; 
-  if(!oficial  || oficial.h ==='' || oficial.a ==='') return null; 
- 
+  if(!palpite || palpite.h==='' || palpite.a==='') return null;
+  if(!oficial  || oficial.h ==='' || oficial.a ==='') return null;
+
   const ph=parseInt(palpite.h), pa=parseInt(palpite.a);
   const oh=parseInt(oficial.h),  oa=parseInt(oficial.a);
- 
+
   if(ph===oh && pa===oa) return 3;
- 
+
   const pRes = ph>pa?'H': ph<pa?'A':'D';
   const oRes = oh>oa?'H': oh<oa?'A':'D';
   if(pRes===oRes) return 1.5;
- 
+
   return 0;
 }
- 
-function buildRanking(){
-  // Centraliza os usuários combinando a Nuvem (Spreadsheet) e Locais
-  const localUsers = Object.keys(getUsers());
-  const allUsers   = [...new Set([...cloudState.usuarios, ...localUsers])].filter(Boolean);
-  
-  // Fontes de verdade agora puxam primariamente do Cloud Loaded
-  const scores  = cloudLoaded ? cloudState.scores : getScores();
-  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
- 
-  const matchesWithResult = Object.keys(results).length;
- 
-  const ranking = allUsers.map(user => {
-    let pts=0, exact=0, partial=0, miss=0, pending=0;
-    
-    ALL_IDS.forEach(id=>{
-      const palpite = scores[user] ? scores[user][id] : null;
-      const oficial = results[id];
-      const p = calcPoints(palpite, oficial);
-      
-      if      (p === 3)   { pts+=3; exact++; }
-      else if (p === 1.5) { pts+=1.5; partial++; }
-      else if (p === 0)   { miss++; }
-      else if (oficial && oficial.h !== '' && oficial.a !== '') { miss++; } // Sem palpite, jogo já com resultado
-      else                { pending++; }
-    });
-    
-    const filled = ALL_IDS.filter(id => {
-      const s = scores[user]?.[id];
-      return s && s.h !== '' && s.a !== '';
-    }).length;
-    
-    return {user, pts, exact, partial, miss, pending, filled};
-  });
- 
-  ranking.sort((a,b)=> b.pts!==a.pts ? b.pts-a.pts : b.exact!==a.exact ? b.exact-a.exact : a.user.localeCompare(b.user));
-  return {ranking, matchesWithResult};
-}
- 
-function showRanking(){
+
+// 🔴 CORREÇÃO: showRanking agora é assíncrona e ESPERA o loadFromCloud()
+// terminar antes de renderizar. Antes, renderRanking() rodava de imediato
+// e podia usar dados locais desatualizados (cloudLoaded ainda false),
+// mostrando só o que existia neste navegador.
+async function showRanking(){
   show('s-ranking');
   const isAdmin = localStorage.getItem('bolao_admin')==='1';
   document.getElementById('btn-admin-results').style.display = isAdmin ? 'block' : 'none';
+
+  const list = document.getElementById('ranking-list');
+  if (list) {
+    list.innerHTML = `<div class="ranking-empty"><div class="re-icon">⏳</div><p>Carregando ranking do servidor...</p></div>`;
+  }
+  setSyncStatus('syncing', '🔄 Carregando ranking...');
+
+  await loadFromCloud();
+
+  setSyncStatus('', '');
   renderRanking();
   populateAdminGroupSelect();
 }
- 
+
 function renderRanking(){
   const {ranking, matchesWithResult} = buildRanking();
   const info = document.getElementById('ranking-matches-info');
@@ -1126,16 +1028,16 @@ function renderRanking(){
         ? `${matchesWithResult} jogo${matchesWithResult!==1?'s':''} com resultado oficial`
         : 'Nenhum resultado oficial inserido ainda';
   }
- 
+
   const list = document.getElementById('ranking-list');
- 
+
   if(!ranking.length){
     if(list) list.innerHTML=`<div class="ranking-empty"><div class="re-icon">👥</div><p>Nenhum participante ainda.</p></div>`;
     return;
   }
- 
+
   const medals=['🥇','🥈','🥉'];
- 
+
   if(list){
       list.innerHTML = ranking.map((r,i)=>{
         const pos = i+1;
@@ -1144,7 +1046,7 @@ function renderRanking(){
         const medal = medals[i] || '';
         const pct = ALL_IDS.length ? Math.round(r.filled/ALL_IDS.length*100) : 0;
         const ptsDisplay = r.pts % 1 === 0 ? r.pts.toString() : r.pts.toFixed(1);
-      
+
         return`<div class="rank-card ${cardCls}" onclick="showUserDetail('${r.user.replace(/'/g,"\\'")}')">
           ${medal?`<div class="rank-medal">${medal}</div>`:''}
           <div class="rank-row">
@@ -1170,84 +1072,23 @@ function renderRanking(){
       }).join('');
   }
 }
- 
-function showUserDetail(user){
-  // Usa dados da nuvem se disponível, senão fallback local
-  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
-  const scores  = cloudLoaded ? cloudState.scores : getScores();
-  
-  const wrap = document.getElementById('ranking-detail-wrap');
-  const ttl  = document.getElementById('rd-title');
-  const lst  = document.getElementById('ranking-detail-list');
 
-  ttl.textContent = `📋 Palpites de ${user}`;
-
-  const rows = [];
-  Object.entries(MATCHES).forEach(([letter, rds])=>{
-    rds.forEach(rd=>{
-      rd.games.forEach(g=>{
-        const palpite = scores[user] ? scores[user][g.id] : null;
-        const oficial = results[g.id];
-        const p = calcPoints(palpite, oficial);
-        const hasPalpite = palpite && palpite.h!=='' && palpite.a!=='';
-        const hasResult  = oficial  && oficial.h !=='' && oficial.a!=='';
-
-        let icon, ptsCls, ptsLbl, resultTxt='';
-        if(p===3){icon='⚡';ptsCls='exact';ptsLbl='+3'}
-        else if(p===1.5){icon='✓';ptsCls='partial';ptsLbl='+1.5'}
-        else if(p===0){icon='✗';ptsCls='miss';ptsLbl='0'}
-        else if(!hasPalpite){icon='—';ptsCls='miss';ptsLbl='—'}
-        else{icon='⏳';ptsCls='pending';ptsLbl='...'}
-
-        if(hasResult) resultTxt = `Oficial: ${g.h.f}${oficial.h}×${oficial.a}${g.a.f}`;
-
-        // 🟢 LÓGICA DO PALPITE CEGO APLICADA:
-        const isLocked = gameIsLocked(g);
-        let textoPalpite = 'Sem palpite';
-
-        if (hasPalpite) {
-          // Mostra o palpite se o jogo bloqueou (iniciou) OU se for o dono do palpite olhando
-          if (isLocked || user === S.user) {
-            textoPalpite = `Palpite: ${palpite.h}×${palpite.a}`;
-          } else {
-            textoPalpite = `🔒 Oculto até o início`;
-          }
-        }
-
-        rows.push(`<div class="detail-match">
-          <div class="dm-icon">${icon}</div>
-          <div style="flex:1;min-width:0">
-            <div class="dm-teams">${g.h.f} ${g.h.n} × ${g.a.f} ${g.a.n}</div>
-            <div class="dm-palpite">${textoPalpite}</div>
-            ${resultTxt?`<div class="dm-result" style="color:var(--teal);font-size:.7rem">${resultTxt}</div>`:''}
-          </div>
-          <div class="dm-pts ${ptsCls}">${ptsLbl}</div>
-        </div>`);
-      });
-    });
-  });
-
-  lst.innerHTML = rows.join('');
-  wrap.style.display = 'block';
-  wrap.scrollIntoView({behavior:'smooth', block:'start'});
-}
- 
 function closeRankingDetail(){
   document.getElementById('ranking-detail-wrap').style.display='none';
 }
- 
+
 /* ═══════════════════════════════════════════════════════
    PAINEL ADMIN — INSERIR RESULTADOS OFICIAIS
 ═══════════════════════════════════════════════════════ */
 let adminGroupOpen = false;
- 
+
 function toggleAdminResults(){
   const panel = document.getElementById('admin-results-panel');
   adminGroupOpen = !adminGroupOpen;
   panel.style.display = adminGroupOpen ? 'block' : 'none';
   if(adminGroupOpen) populateAdminGroupSelect();
 }
- 
+
 function activateAdmin(){
   const pw = prompt('Senha do administrador:');
   if(!pw) return;
@@ -1259,7 +1100,7 @@ function activateAdmin(){
     toast('❌ Senha incorreta','err');
   }
 }
- 
+
 let adminTapCount=0, adminTapTimer=null;
 document.addEventListener('DOMContentLoaded',()=>{
   const rtitle = document.querySelector('.ranking-title');
@@ -1272,59 +1113,13 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
 });
- 
-function populateAdminGroupSelect(){
-  const sel = document.getElementById('admin-group-sel');
-  if(!sel || sel.options.length > 1) return;
-  Object.keys(GROUPS).forEach(letter=>{
-    const opt = document.createElement('option');
-    opt.value = letter;
-    opt.textContent = `Grupo ${letter}`;
-    sel.appendChild(opt);
-  });
-}
- 
-function renderAdminGames(){
-  const letter = document.getElementById('admin-group-sel').value;
-  const container = document.getElementById('admin-games-list');
-  if(!letter){container.innerHTML='';return;}
- 
-  const results = getOfficialResults();
-  const rounds  = MATCHES[letter];
- 
-  let html = '';
-  rounds.forEach(rd=>{
-    html += `<div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:var(--gold);padding:.6rem .3rem .2rem;letter-spacing:.05em">RODADA ${rd.r}</div>`;
-    rd.games.forEach(g=>{
-      const of = results[g.id];
-      const hv = of ? of.h : '';
-      const av = of ? of.a : '';
-      const savedMark = (hv!==''&&av!=='')?`<span class="agr-saved">✔ salvo</span>`:'';
-      html+=`<div class="admin-game-row">
-        <div style="flex:1;min-width:140px">
-          <div class="agr-teams">${g.h.f} ${g.h.n} × ${g.a.f} ${g.a.n}</div>
-          <div class="agr-date">${g.dt} · ${g.tm}</div>
-        </div>
-        <div class="agr-score">
-          <input class="agr-sin" type="number" min="0" max="30" id="of-h-${g.id}" value="${hv}" placeholder="—">
-          <span class="agr-sep">×</span>
-          <input class="agr-sin" type="number" min="0" max="30" id="of-a-${g.id}" value="${av}" placeholder="—">
-          <button class="btn-save-result" onclick="saveOfficialGameResult('${g.id}')">Salvar</button>
-          ${savedMark}
-        </div>
-      </div>`;
-    });
-  });
- 
-  container.innerHTML = html;
-}
- 
+
 function saveOfficialGameResult(matchId){
   const h = document.getElementById(`of-h-${matchId}`).value;
   const a = document.getElementById(`of-a-${matchId}`).value;
   if(h===''||a===''){toast('⚠ Preencha os dois placares!','err');return;}
   saveOfficialResult(matchId, h, a);
-  renderAdminGames(); 
+  renderAdminGames();
   renderRanking();
   toast('✔ Resultado salvo!','ok');
 }
@@ -1423,6 +1218,8 @@ function getKoSc(user, id) {
   return (sc[user] && sc[user][id] != null) ? sc[user][id] : null;
 }
 
+// 🔴 CORREÇÃO: agora repassa "winner" para syncToCloud, que antes
+// descartava esse dado silenciosamente (assinatura só aceitava h, a).
 function saveKoSc(user, id, h, a, winner = null) {
   const sc = getScores();
   if (!sc[user]) sc[user] = {};
@@ -1430,7 +1227,7 @@ function saveKoSc(user, id, h, a, winner = null) {
   saveScores(sc);
   if (!cloudState.scores[user]) cloudState.scores[user] = {};
   cloudState.scores[user][id] = { h, a, winner };
-  syncToCloud(user, id, h, a);
+  syncToCloud(user, id, h, a, winner);
 }
 
 // Retorna o time "vencedor" de um jogo KO:
@@ -1493,11 +1290,11 @@ function findKoMatch(id) {
 // Resolve os times de uma partida KO (considerando feedFrom)
 function resolveKoTeams(match) {
   if (match.h && match.a) return { h: match.h, a: match.a }; // times fixos (R16)
-  
+
   // Times derivados de resultados anteriores
   const [srcA, srcB] = match.feedFrom || [];
   let teamA = null, teamB = null;
-  
+
   if (match.feedLoser) {
     // Disputa 3º lugar: perdedores das semis
     teamA = srcA ? getKoLoser(srcA) : null;
@@ -1581,25 +1378,17 @@ function renderKoMatchCard(match, isFinal) {
   const hv = sc ? sc.h : '';
   const av = sc ? sc.a : '';
   const savedWinner = sc ? (sc.winner || '') : '';
-  // "salvo" = tem placar. Winner só é extra em empate.
-  const saved = hv !== '' && av !== '';
+  const saved = hv !== '' && av !== '' && savedWinner !== '';
   const teamsKnown = teams.h.abbr !== '?' && teams.a.abbr !== '?';
-  const needsWinnerLogic = isKoRoundNeedingWinner(match.id);
-  // No render inicial, picker visível se: empate salvo OU campos não bloqueados (JS mostra/oculta via onKoInput)
-  const currentDraw = saved && isDrawScore(hv, av);
-  const showWinnerPicker = teamsKnown && !locked && needsWinnerLogic;
-  // Picker inicia visível se já há empate salvo, senão oculto até usuário digitar empate
-  const pickerVisible = showWinnerPicker && currentDraw;
 
   const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
   const official = results[match.id];
   const hasOfficial = official && official.h !== '' && official.a !== '';
-  const officialDraw = hasOfficial && parseInt(official.h) === parseInt(official.a);
 
-  // Pontuação
+  // Pontuação desta partida
   let scoreDisplay = '';
   if (hasOfficial) {
-    const pts = calcKoPts(sc, official, match.id);
+    const pts = calcPoints(sc, official);
     if (pts === 3)        scoreDisplay = `<span class="ko-pts exact">⚡ +3</span>`;
     else if (pts === 1.5) scoreDisplay = `<span class="ko-pts partial">✓ +1.5</span>`;
     else if (pts === 0)   scoreDisplay = `<span class="ko-pts miss">✗ 0</span>`;
@@ -1608,21 +1397,27 @@ function renderKoMatchCard(match, isFinal) {
   const isFinalMatch = match.id === 'KO_FINAL';
   const is3rd        = match.id === 'KO_3RD';
 
-  // Escolha de vencedor quando bloqueado
+  // Bloco de empate: qual time avança? (pênaltis/prorrogação)
+  // Mostra sempre que os times são conhecidos e o jogo não está bloqueado
+  const showWinnerPicker = teamsKnown && !locked;
+
+  // Quando bloqueado, mostra quem o usuário escolheu como vencedor
   let lockedWinnerLine = '';
-  if (locked && teamsKnown && saved && needsWinnerLogic && currentDraw) {
+  if (locked && teamsKnown && hv !== '' && av !== '') {
     const chosenName = savedWinner === 'h' ? teams.h.n : savedWinner === 'a' ? teams.a.n : '—';
     const chosenFlag = savedWinner === 'h' ? teams.h.f : savedWinner === 'a' ? teams.a.f : '';
     lockedWinnerLine = `<div class="ko-winner-chosen">🏆 Avança: ${chosenFlag} ${chosenName}</div>`;
   }
 
-  // Vencedor oficial
+  // Resultado oficial: vencedor real
   let officialWinnerLine = '';
-  if (hasOfficial && needsWinnerLogic && officialDraw) {
+  if (hasOfficial) {
     const officialWinner = getKoWinner(match.id);
-    officialWinnerLine = officialWinner
-      ? `<div class="ko-official-winner">✅ Vencedor: ${officialWinner.f} ${officialWinner.n}</div>`
-      : `<div class="ko-official-winner pending">⏳ Aguardando desempate oficial</div>`;
+    if (officialWinner) {
+      officialWinnerLine = `<div class="ko-official-winner">✅ Vencedor: ${officialWinner.f} ${officialWinner.n}</div>`;
+    } else {
+      officialWinnerLine = `<div class="ko-official-winner pending">⏳ Aguardando desempate</div>`;
+    }
   }
 
   return `
@@ -1668,8 +1463,8 @@ function renderKoMatchCard(match, isFinal) {
     </div>
 
     ${showWinnerPicker ? `
-      <div class="ko-winner-picker" id="wp-${match.id}" style="display:${pickerVisible ? 'block' : 'none'}">
-        <div class="ko-winner-label">🏆 Quem avança? <span class="ko-winner-hint">(empate — escolha o vencedor)</span></div>
+      <div class="ko-winner-picker" id="wp-${match.id}">
+        <div class="ko-winner-label">🏆 Quem avança? <span class="ko-winner-hint">(obrigatório — vale para pênaltis)</span></div>
         <div class="ko-winner-options">
           <label class="ko-winner-opt${savedWinner === 'h' ? ' selected' : ''}">
             <input type="radio" name="winner-${match.id}" value="h" ${savedWinner === 'h' ? 'checked' : ''}
@@ -1688,6 +1483,7 @@ function renderKoMatchCard(match, isFinal) {
     ` : ''}
 
     ${saved && !locked ? `<div class="ko-saved-badge">✔ Salvo</div>` : ''}
+    ${!saved && !locked && teamsKnown ? `<div class="ko-unsaved-hint">Preencha o placar e escolha quem avança</div>` : ''}
     ${locked && !teamsKnown ? `<div class="ko-lock-note">🔒 Bloqueado</div>` : ''}
   </div>`;
 }
@@ -1697,39 +1493,16 @@ function selectKoRound(idx) {
   renderKnockoutBracket();
 }
 
-function isKoRoundNeedingWinner(matchId) {
-  // R16 (Segunda Fase) não usa desempate — apenas oitavas em diante
-  const r16Ids = KNOCKOUT_ROUNDS.find(r => r.id === 'r16')?.matches.map(m => m.id) || [];
-  return !r16Ids.includes(matchId);
-}
-
-function isDrawScore(h, a) {
-  return h !== '' && a !== '' && parseInt(h) === parseInt(a);
-}
-
 function onKoInput(id) {
+  // Auto-save só quando placar E vencedor estiverem preenchidos
   const h = document.getElementById(`ko-h-${id}`)?.value;
   const a = document.getElementById(`ko-a-${id}`)?.value;
-  if (h === '' || a === '') return;
-
-  // Mostra/oculta o picker de vencedor dinamicamente conforme o placar
-  const picker = document.getElementById(`wp-${id}`);
-  if (picker) {
-    const needsWinner = isKoRoundNeedingWinner(id) && isDrawScore(h, a);
-    picker.style.display = needsWinner ? 'block' : 'none';
-  }
-
-  // Auto-save: se não for empate (ou for R16), salva direto
-  if (!isDrawScore(h, a) || !isKoRoundNeedingWinner(id)) {
-    saveKoGame(id, true);
-  } else {
-    // Empate: só salva se já tiver winner selecionado
-    const winnerEl = document.querySelector(`input[name="winner-${id}"]:checked`);
-    if (winnerEl) saveKoGame(id, true);
-  }
+  const winnerEl = document.querySelector(`input[name="winner-${id}"]:checked`);
+  if (h !== '' && a !== '' && winnerEl) saveKoGame(id, true);
 }
 
 function onWinnerChange(id) {
+  // Re-estiliza as opções e tenta salvar
   const opts = document.querySelectorAll(`#wp-${id} .ko-winner-opt`);
   opts.forEach(opt => {
     const radio = opt.querySelector('input[type="radio"]');
@@ -1750,27 +1523,23 @@ function saveKoGame(id, silent = false) {
 
   const h = document.getElementById(`ko-h-${id}`)?.value.trim();
   const a = document.getElementById(`ko-a-${id}`)?.value.trim();
+  const winnerEl = document.querySelector(`input[name="winner-${id}"]:checked`);
+  const winner = winnerEl ? winnerEl.value : null;
 
   if (h === '' || a === '') {
     if (!silent) toast('⚠ Preencha o placar!', 'err');
     return;
   }
-
-  // Winner só é obrigatório em empate E fora do R16
-  let winner = null;
-  if (isKoRoundNeedingWinner(id) && isDrawScore(h, a)) {
-    const winnerEl = document.querySelector(`input[name="winner-${id}"]:checked`);
-    winner = winnerEl ? winnerEl.value : null;
-    if (!winner) {
-      if (!silent) toast('⚠ Escolha quem avança!', 'err');
-      return;
-    }
+  if (!winner) {
+    if (!silent) toast('⚠ Escolha quem avança!', 'err');
+    return;
   }
 
   saveKoSc(S.user, id, h, a, winner);
 
   const card = document.getElementById(`ko-card-${id}`);
   if (card) card.classList.add('saved');
+  // Remove hint de não salvo
   const hint = card?.querySelector('.ko-unsaved-hint');
   if (hint) hint.remove();
 
@@ -1795,53 +1564,31 @@ function updateKoProgress() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   INTEGRAÇÃO: RANKING inclui pontos do mata-mata
+   RANKING (fase de grupos + mata-mata combinados)
+   ───────────────────────────────────────────────────────
+   🔴 CORREÇÃO: a lista de participantes (allUsers) agora é
+   construída A PARTIR de quem tem palpites salvos na nuvem
+   (Object.keys(scores)) — não só da aba "Usuarios". Antes,
+   se o registro de login falhasse silenciosamente (ver
+   syncLoginToCloud), o jogador sumia do ranking mesmo tendo
+   todos os palpites computados corretamente nos bastidores.
 ═══════════════════════════════════════════════════════ */
-
-// Calcula pontos de um jogo KO
-// - Placar exato: 3 pts (+ winner correto se empate)
-// - Resultado certo (acertou quem avança): 1.5 pts
-// - Errou: 0 pts
-// Funciona SEM winner preenchido (R16 ou palpite sem empate)
-function calcKoPts(palpite, oficial, matchId) {
-  if (!palpite || palpite.h === '' || palpite.a === '') return null;
-  if (!oficial  || oficial.h  === '' || oficial.a  === '') return null;
-
-  const ph = parseInt(palpite.h), pa = parseInt(palpite.a);
-  const oh = parseInt(oficial.h),  oa = parseInt(oficial.a);
-  const needsWinner = isKoRoundNeedingWinner(matchId);
-
-  // Vencedor real
-  const oWinner = oficial.winner || (oh > oa ? 'h' : oh < oa ? 'a' : null);
-  // Vencedor do palpite
-  const pWinner = palpite.winner || (ph > pa ? 'h' : ph < pa ? 'a' : null);
-
-  // Placar exato
-  if (ph === oh && pa === oa) {
-    if (!needsWinner || !oWinner) return 3;           // R16 ou resultado sem empate oficial
-    if (pWinner === oWinner) return 3;                // empate e acertou quem avançou
-    return 1.5;                                       // placar certo mas errou o avanço
-  }
-
-  // Resultado parcial: acertou quem avança
-  if (oWinner && pWinner === oWinner) return 1.5;
-
-  return 0;
-}
-
 function buildRanking() {
-  const localUsers = Object.keys(getUsers());
-  const allUsers   = [...new Set([...cloudState.usuarios, ...localUsers])].filter(Boolean);
-  
   const scores  = cloudLoaded ? cloudState.scores : getScores();
   const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
+
+  const playersFromScores   = Object.keys(scores);
+  const playersFromRegistry = cloudState.usuarios || [];
+  const localUsers          = Object.keys(getUsers());
+
+  const allUsers = [...new Set([...playersFromScores, ...playersFromRegistry, ...localUsers])].filter(Boolean);
 
   const matchesWithResult = Object.keys(results).length;
 
   const ranking = allUsers.map(user => {
     let pts = 0, exact = 0, partial = 0, miss = 0, pending = 0;
 
-    // Pontos da fase de grupos (original)
+    // Pontos da fase de grupos
     ALL_IDS.forEach(id => {
       const palpite = scores[user] ? scores[user][id] : null;
       const oficial = results[id];
@@ -1853,17 +1600,27 @@ function buildRanking() {
       else                { pending++; }
     });
 
-    // Pontos do mata-mata
+    // Pontos do mata-mata (lógica especial: empate no placar → verifica winner)
     ALL_KO_IDS.forEach(id => {
       const palpite = scores[user] ? scores[user][id] : null;
       const oficial = results[id];
-      if (!oficial || oficial.h === '' || oficial.a === '') { pending++; return; }
-      if (!palpite || palpite.h === '' || palpite.a === '') { miss++; return; }
+      if (!palpite || palpite.h === '' || palpite.a === '' || !palpite.winner) return;
+      if (!oficial  || oficial.h  === '' || oficial.a  === '') { pending++; return; }
 
-      const p = calcKoPts(palpite, oficial, id);
-      if      (p === 3)   { pts += 3;   exact++;   }
-      else if (p === 1.5) { pts += 1.5; partial++; }
-      else                { miss++;                }
+      const ph = parseInt(palpite.h), pa = parseInt(palpite.a);
+      const oh = parseInt(oficial.h),  oa = parseInt(oficial.a);
+
+      // Placar exato E vencedor correto = 3 pts
+      if (ph === oh && pa === oa && palpite.winner === oficial.winner) {
+        pts += 3; exact++; return;
+      }
+      // Resultado parcial: acertou quem avança (seja pelo placar ou pelo campo winner)
+      const pWinner = ph > pa ? 'h' : ph < pa ? 'a' : palpite.winner;
+      const oWinner = oficial.winner || (oh > oa ? 'h' : oh < oa ? 'a' : null);
+      if (oWinner && pWinner === oWinner) {
+        pts += 1.5; partial++; return;
+      }
+      miss++;
     });
 
     const allMatchIds = [...ALL_IDS, ...ALL_KO_IDS];
@@ -1880,9 +1637,8 @@ function buildRanking() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   ADMIN: suporte a resultados oficiais do mata-mata
+   ADMIN: dropdown com grupos + fases do mata-mata
 ═══════════════════════════════════════════════════════ */
-
 function populateAdminGroupSelect() {
   const sel = document.getElementById('admin-group-sel');
   if (!sel || sel.options.length > 1) return;
@@ -1892,7 +1648,6 @@ function populateAdminGroupSelect() {
     opt.textContent = `Grupo ${letter}`;
     sel.appendChild(opt);
   });
-  // Adiciona fases do mata-mata no seletor admin
   KNOCKOUT_ROUNDS.forEach(r => {
     const opt = document.createElement('option');
     opt.value = 'KO_' + r.id;
@@ -1902,8 +1657,7 @@ function populateAdminGroupSelect() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   RANKING DETAIL: sobrescreve showUserDetail para incluir
-   palpites do mata-mata com título separado
+   RANKING DETAIL: palpites da fase de grupos + mata-mata
 ═══════════════════════════════════════════════════════ */
 function showUserDetail(user) {
   const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
@@ -1965,7 +1719,6 @@ function showUserDetail(user) {
   rows.push(`<div class="detail-section-title ko-section-title">⚔️ Palpites Mata-Mata</div>`);
 
   KNOCKOUT_ROUNDS.forEach(round => {
-    // Subtítulo por fase
     rows.push(`<div class="detail-ko-phase">${round.label}</div>`);
 
     round.matches.forEach(g => {
@@ -2019,9 +1772,10 @@ function showUserDetail(user) {
   wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Sobrescreve renderAdminGames para suportar mata-mata
-const _origRenderAdminGames = typeof renderAdminGames === 'function' ? renderAdminGames : null;
-
+/* ═══════════════════════════════════════════════════════
+   ADMIN: lista de jogos (grupos OU mata-mata) para inserir
+   resultados oficiais
+═══════════════════════════════════════════════════════ */
 function renderAdminGames() {
   const letter = document.getElementById('admin-group-sel').value;
   const container = document.getElementById('admin-games-list');
@@ -2041,9 +1795,8 @@ function renderAdminGames() {
       const hv = of ? of.h : '';
       const av = of ? of.a : '';
       const ow = of ? (of.winner || '') : '';
-      const savedMark = (hv !== '' && av !== '') ? `<span class="agr-saved">✔ salvo</span>` : '';
+      const savedMark = (hv !== '' && av !== '' && ow !== '') ? `<span class="agr-saved">✔ salvo</span>` : '';
       const teamsKnown = teams.h.abbr !== '?' && teams.a.abbr !== '?';
-      const isDrawSaved = hv !== '' && av !== '' && parseInt(hv) === parseInt(av);
 
       html += `<div class="admin-game-row" style="flex-direction:column;align-items:stretch;gap:.5rem">
         <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
@@ -2052,18 +1805,16 @@ function renderAdminGames() {
             <div class="agr-date">${g.dt} · ${g.tm} — ${g.label}</div>
           </div>
           <div class="agr-score">
-            <input class="agr-sin" type="number" min="0" max="30" id="of-h-${g.id}" value="${hv}" placeholder="—"
-              oninput="onAdminKoScoreInput('${g.id}')">
+            <input class="agr-sin" type="number" min="0" max="30" id="of-h-${g.id}" value="${hv}" placeholder="—">
             <span class="agr-sep">×</span>
-            <input class="agr-sin" type="number" min="0" max="30" id="of-a-${g.id}" value="${av}" placeholder="—"
-              oninput="onAdminKoScoreInput('${g.id}')">
+            <input class="agr-sin" type="number" min="0" max="30" id="of-a-${g.id}" value="${av}" placeholder="—">
             <button class="btn-save-result" onclick="saveOfficialKoResult('${g.id}')">Salvar</button>
             ${savedMark}
           </div>
         </div>
         ${teamsKnown ? `
-        <div class="agr-winner-row" id="agr-wr-${g.id}" style="display:${isDrawSaved ? 'flex' : 'none'}">
-          <span class="agr-winner-label">🏆 Vencedor:</span>
+        <div class="agr-winner-row">
+          <span class="agr-winner-label">🏆 Vencedor oficial:</span>
           <label class="agr-winner-opt${ow === 'h' ? ' sel' : ''}">
             <input type="radio" name="agr-w-${g.id}" value="h" ${ow === 'h' ? 'checked' : ''}
               onchange="onAdminWinnerChange('${g.id}')">
@@ -2074,15 +1825,15 @@ function renderAdminGames() {
               onchange="onAdminWinnerChange('${g.id}')">
             ${teams.a.f} ${teams.a.n}
           </label>
-          <span class="agr-winner-hint">(pênaltis/prorrogação)</span>
-        </div>` : ''}
+          <span class="agr-winner-hint">(use quando houver pênaltis/prorrogação)</span>
+        </div>` : `<div class="agr-winner-hint" style="padding-left:.3rem">Times ainda não definidos</div>`}
       </div>`;
     });
     container.innerHTML = html;
     return;
   }
 
-  // Fase de grupos (comportamento original)
+  // Fase de grupos
   const results = getOfficialResults();
   const rounds  = MATCHES[letter];
   if (!rounds) { container.innerHTML = ''; return; }
@@ -2119,50 +1870,42 @@ function renderAdminGames() {
 
 function onAdminWinnerChange(matchId) {
   const radios = document.querySelectorAll(`input[name="agr-w-${matchId}"]`);
-  radios.forEach(r => r.closest('label').classList.toggle('sel', r.checked));
+  radios.forEach(r => {
+    r.closest('label').classList.toggle('sel', r.checked);
+  });
 }
 
-function onAdminKoScoreInput(matchId) {
+async function saveOfficialKoResult(matchId) {
   const h = document.getElementById(`of-h-${matchId}`)?.value;
   const a = document.getElementById(`of-a-${matchId}`)?.value;
-  const winnerRow = document.getElementById(`agr-wr-${matchId}`);
-  if (winnerRow) {
-    const isDraw = h !== '' && a !== '' && parseInt(h) === parseInt(a);
-    winnerRow.style.display = isDraw ? 'flex' : 'none';
-  }
-}
+  const winnerEl = document.querySelector(`input[name="agr-w-${matchId}"]:checked`);
+  const winner = winnerEl ? winnerEl.value : null;
 
-function saveOfficialKoResult(matchId) {
-  const h = document.getElementById(`of-h-${matchId}`)?.value;
-  const a = document.getElementById(`of-a-${matchId}`)?.value;
   if (h === '' || a === '') { toast('⚠ Preencha os dois placares!', 'err'); return; }
+  if (!winner) { toast('⚠ Escolha o vencedor!', 'err'); return; }
 
-  const isDraw = parseInt(h) === parseInt(a);
-  let winner = null;
-  if (isDraw) {
-    const winnerEl = document.querySelector(`input[name="agr-w-${matchId}"]:checked`);
-    winner = winnerEl ? winnerEl.value : null;
-    if (!winner) { toast('⚠ Empate — escolha o vencedor!', 'err'); return; }
-  }
-
-  // Salva localmente imediatamente (sem await — resposta instantânea)
+  // Salva localmente (cache de leitura)
   const results = getOfficialResults();
   results[matchId] = { h, a, winner };
   localStorage.setItem(RESULTS_KEY, JSON.stringify(results));
+
+  // Atualiza cloudState em memória (otimista, antes do próximo poll)
   if (!cloudState.oficiais) cloudState.oficiais = {};
   cloudState.oficiais[matchId] = { h, a, winner };
 
-  // Atualiza UI imediatamente
+  // Envia ao Google Sheets — o backend agora persiste o campo winner
+  // numa coluna própria, então ele não se perde no próximo loadFromCloud()
+  if (GOOGLE_SCRIPT_URL) {
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'save_official', match_id: matchId, score_home: h, score_away: a, winner })
+      });
+    } catch (e) { console.warn('Erro ao salvar resultado KO:', e); }
+  }
+
   renderAdminGames();
   renderRanking();
   toast('✔ Resultado salvo!', 'ok');
-
-  // Envia ao Google Sheets em background (sem bloquear)
-  if (GOOGLE_SCRIPT_URL) {
-    fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'save_official', match_id: matchId, score_home: h, score_away: a, winner })
-    }).catch(e => console.warn('Sync KO result:', e));
-  }
 }
