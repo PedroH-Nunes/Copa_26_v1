@@ -4,7 +4,7 @@
    O código real do backend está no arquivo Code.gs.
    Este bloco é apenas referência histórica.
 ═══════════════════════════════════════════════════════ */
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfCRnqBItqDumAQUMHiyLHOiacaiYSJsPYe2viMiG2udlM-dnNNs_mKVxGatIq1QtK3g/exec'; // ← URL do Apps Script
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfCRnqBItqDumAQUMHiyLHOiacaiYSJsPYe2viMiG2udlM-dnNNs_mKVxGatIq1QtK3g/exec';
 
 /* ═══════════════════════════════════════════════════════
    CONFIG & ESTADO NA NUVEM
@@ -14,7 +14,27 @@ const POPUP_DELAY_MS = 3000;
 
 let cloudState = { scores: {}, oficiais: {}, usuarios: [] };
 let cloudLoaded = false;
-let isFetchingCloud = false; // Trava de carregamento simultâneo
+let isFetchingCloud = false;
+
+/* 🔴 LIMPEZA FORÇADA DO LOCALSTORAGE */
+function clearAllLocalStorage() {
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    console.log('[Bolão] ✔ LocalStorage e SessionStorage foram limpos completamente');
+  } catch (e) {
+    console.error('[Bolão] Erro ao limpar storage:', e);
+  }
+}
+
+// Executa limpeza na primeira carga
+(function() {
+  const lastCleanup = localStorage.getItem('bolao_cleanup_v2');
+  if (lastCleanup !== 'done') {
+    clearAllLocalStorage();
+    localStorage.setItem('bolao_cleanup_v2', 'done');
+  }
+})();
 
 /* ═══════════════════════════════════════════════════════
    GROUPS & GAMES DATA
@@ -232,12 +252,12 @@ Object.values(MATCHES).forEach(rds=>rds.forEach(rd=>rd.games.forEach(g=>ALL_IDS.
    STATE
 ═══════════════════════════════════════════════════════ */
 let S = {user:null, group:null, round:1, rounds:[]};
-let autoPopupTimer = null;    // timer do popup de 3s
-let popupMode = null;         // 'round' | 'group' | 'finish'
-let syncQueue = [];           // fila de sincronização offline
+let autoPopupTimer = null;
+let popupMode = null;
+let syncQueue = [];
 let isSyncing = false;
 
-// Helpers de Tempo (Verifica Bloqueio Individual por Jogo)
+// Helpers de Tempo
 const MON_MAP = { Jan:1, Fev:2, Mar:3, Abr:4, Mai:5, Jun:6, Jul:7, Ago:8, Set:9, Out:10, Nov:11, Dez:12 };
 
 function gameKickoff(g) {
@@ -254,32 +274,17 @@ function gameIsLocked(g) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   STORAGE LOCAL (offline-safe, instantâneo)
-   ───────────────────────────────────────────────────────
-   IMPORTANTE: este storage local NÃO é a fonte de verdade
-   do ranking. Ele serve só como (1) sessão de login,
-   (2) fila de sincronização offline e (3) cache de leitura
-   instantânea. A fonte de verdade real é sempre o Google
-   Sheets (cloudState), carregado via loadFromCloud().
+   🔴 STORAGE: APENAS PARA FILA DE SYNC (offline-first)
+   Dados NUNCA são lidos do localStorage.
+   Toda lógica usa cloudState como fonte de verdade.
 ═══════════════════════════════════════════════════════ */
-function store(){return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}
-function save(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d))}
-
-function hashPw(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h)+s.charCodeAt(i)|0;return h.toString(36)}
-
-function getUsers(){return store().users||{}}
-function saveUsers(u){const d=store();d.users=u;save(d)}
-function getScores(){return store().scores||{}}
-function saveScores(sc){const d=store();d.scores=sc;save(d)}
-
-/* session persistence */
+function getSyncQueue(){return JSON.parse(localStorage.getItem(STORAGE_KEY+'_queue')||'[]')}
+function saveSyncQueue(q){localStorage.setItem(STORAGE_KEY+'_queue',JSON.stringify(q))}
 function getSession(){return localStorage.getItem(STORAGE_KEY+'_session')||null}
 function saveSession(name){localStorage.setItem(STORAGE_KEY+'_session',name)}
 function clearSession(){localStorage.removeItem(STORAGE_KEY+'_session')}
 
-/* sync queue persistence (para não perder dados offline) */
-function getSyncQueue(){return JSON.parse(localStorage.getItem(STORAGE_KEY+'_queue')||'[]')}
-function saveSyncQueue(q){localStorage.setItem(STORAGE_KEY+'_queue',JSON.stringify(q))}
+function hashPw(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h)+s.charCodeAt(i)|0;return h.toString(36)}
 
 /* ═══════════════════════════════════════════════════════
    BACKEND — GOOGLE APPS SCRIPT SYNC
@@ -291,15 +296,11 @@ function setSyncStatus(state, msg) {
   el.textContent = msg;
 }
 
-// 🔴 CORREÇÃO: agora aceita e envia também o campo "winner" (necessário
-// para o mata-mata, onde o usuário escolhe quem avança em caso de empate).
-// Sem isso o backend nunca recebia esse dado e o palpite ficava incompleto.
 async function syncToCloud(user, matchId, h, a, winner) {
-  if (!GOOGLE_SCRIPT_URL) return; // sem URL configurada, só local
+  if (!GOOGLE_SCRIPT_URL) return;
 
   const payload = {action:'save_score', user, match_id:matchId, score_home:h, score_away:a, winner: winner || ''};
 
-  // Adiciona na fila
   const q = getSyncQueue();
   const existing = q.findIndex(x => x.user === user && x.match_id === matchId);
   if (existing >= 0) q[existing] = payload; else q.push(payload);
@@ -320,15 +321,14 @@ async function processQueue() {
     try {
       await fetch(GOOGLE_SCRIPT_URL, {
         method:'POST',
-        headers:{'Content-Type':'text/plain;charset=utf-8'}, // 🔴 CORS Ajustado
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
         body:JSON.stringify(q[i])
       });
       q.splice(i, 1);
       i--;
       saveSyncQueue(q);
     } catch (err) {
-      // ficará na fila para tentar depois
-      console.warn('[Bolão] Falha ao sincronizar, tentará novamente:', err.message);
+      console.warn('[Bolão] Falha ao sincronizar:', err.message);
       break;
     }
   }
@@ -338,44 +338,29 @@ async function processQueue() {
   if (getSyncQueue().length === 0) {
     setSyncStatus('synced', '✔ Sincronizado');
     setTimeout(() => setSyncStatus('', ''), 3000);
-
-    // GATILHO: Assim que terminar de salvar seus dados, já puxa as atualizações de todo mundo
     loadFromCloud();
   } else {
     setSyncStatus('error', '⚠ Sem conexão — salvo localmente');
   }
 }
 
-// Ao voltar online, processa a fila
 window.addEventListener('online', () => {
   setSyncStatus('syncing', '🔄 Reconectado, sincronizando...');
   processQueue();
 });
 
-// Função de Carregamento Focada na Nuvem como Verdade
 async function loadFromCloud() {
   if (!GOOGLE_SCRIPT_URL || isFetchingCloud) return;
-  isFetchingCloud = true; // Bloqueia novas chamadas enquanto esta não terminar
+  isFetchingCloud = true;
 
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL + '?action=get_scores&t=' + Date.now());
     if (!res.ok) return;
     const data = await res.json();
 
-    // Atualiza estado em memória (Fonte de verdade)
     if (data.palpites) cloudState.scores   = data.palpites;
     if (data.oficiais) cloudState.oficiais = data.oficiais;
     if (data.usuarios) cloudState.usuarios = data.usuarios;
-
-    // Sincroniza localmente para backup/offline da sessão ativa
-    if (data.palpites && S.user && data.palpites[S.user]) {
-      const sc = getScores();
-      sc[S.user] = { ...(sc[S.user] || {}), ...data.palpites[S.user] };
-      saveScores(sc);
-    }
-    if (data.oficiais) {
-      localStorage.setItem(RESULTS_KEY, JSON.stringify(data.oficiais));
-    }
 
     cloudLoaded = true;
     renderPlayersLogin();
@@ -389,23 +374,18 @@ async function loadFromCloud() {
   } catch(e) {
     console.warn('[Bolão] Cloud offline:', e.message);
   } finally {
-    isFetchingCloud = false; // Libera para a próxima busca
+    isFetchingCloud = false;
   }
 }
 
-// 1. Polling mais rápido (10s)
 setInterval(loadFromCloud, 10000);
 
-// 2. Atualiza ao focar na aba ou ligar a tela
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') loadFromCloud();
 });
 
-// 3. Sincronização entre abas no mesmo navegador
 window.addEventListener('storage', (e) => {
-  if (e.key === STORAGE_KEY || e.key === RESULTS_KEY) {
-    loadFromCloud();
-  }
+  if (e.key === STORAGE_KEY+'_queue') loadFromCloud();
 });
 
 /* ═══════════════════════════════════════════════════════
@@ -418,10 +398,6 @@ function togglePw(inputId,btnId){
   else{el.type='password';btn.textContent='👁';}
 }
 
-// 🔴 CORREÇÃO: antes essa função era "dispara e esquece" (sem retry).
-// Se a única tentativa falhasse (rede instável, lock do Sheets ocupado),
-// o usuário nunca era registrado na aba Usuarios e sumia do ranking
-// mesmo tendo palpites salvos corretamente. Agora tenta até 3x.
 async function syncLoginToCloud(username, passHash) {
   if (!GOOGLE_SCRIPT_URL) return;
   const payload = { action: 'login', user: username, passHash: passHash };
@@ -433,13 +409,13 @@ async function syncLoginToCloud(username, passHash) {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
-      return; // sucesso
+      return;
     } catch (error) {
-      console.warn(`[Bolão] Tentativa ${tentativa + 1}/3 de registrar usuário falhou:`, error.message);
+      console.warn(`[Bolão] Tentativa ${tentativa + 1}/3 de registrar usuário:`, error.message);
       await new Promise(r => setTimeout(r, 1500 * (tentativa + 1)));
     }
   }
-  console.error('[Bolão] Falha ao registrar usuário na nuvem após 3 tentativas:', username);
+  console.error('[Bolão] Falha ao registrar usuário após 3 tentativas:', username);
 }
 
 function doLogin(){
@@ -452,19 +428,10 @@ function doLogin(){
   if(!name){err.textContent='Digite seu nome no bolão.';return;}
   if(pw.length<3){err.textContent='Senha deve ter pelo menos 3 caracteres.';return;}
 
-  const users=getUsers();
   const hash=hashPw(pw);
 
-  if(users[name]){
-    if(users[name].pw!==hash){err.textContent='Senha incorreta para este nome.';return;}
-    info.textContent='Bem-vindo de volta, '+name+'! 👋';
-  } else {
-    users[name]={pw:hash,joined:Date.now()};
-    saveUsers(users);
-    info.textContent='Cadastro realizado! Bem-vindo, '+name+'! 🎉';
-  }
-
-  // Sincroniza usuário com o Backend
+  // 🔴 Login agora é apenas contra a nuvem (não mantém cadastro local)
+  info.textContent='✔ Bem-vindo, '+name+'! 🎉';
   syncLoginToCloud(name, hash);
 
   S.user=name;
@@ -472,8 +439,8 @@ function doLogin(){
   setTimeout(()=>showGroups(),500);
 }
 
-document.getElementById('inp-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-document.getElementById('inp-name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('inp-pw').focus();});
+document.getElementById('inp-pw')?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('inp-name')?.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('inp-pw')?.focus();});
 
 function doLogout(){S.user=null;clearSession();show('s-login');renderPlayersLogin();}
 
@@ -483,27 +450,20 @@ function fillName(n){
 }
 
 /* ═══════════════════════════════════════════════════════
-   SCORES HELPERS
+   SCORES HELPERS — SEMPRE DO CLOUDSTATE
 ═══════════════════════════════════════════════════════ */
 function getSc(user,id){
-  // Prefere buscar da nuvem se disponível, senão do local storage
-  const sc = cloudLoaded ? cloudState.scores : getScores();
-  return (sc[user]&&sc[user][id]!=null)?sc[user][id]:null;
+  // 🔴 SEMPRE lê do cloudState, nunca do localStorage
+  return (cloudState.scores[user] && cloudState.scores[user][id] != null) ? cloudState.scores[user][id] : null;
 }
 
-function saveSc(user,id,h,a){
-  // 1. Salva localmente (imediato, não depende de rede)
-  const sc=getScores();
-  if(!sc[user])sc[user]={};
-  sc[user][id]={h,a};
-  saveScores(sc);
-
-  // Atualiza também o state em memória de forma síncrona
+function saveSc(user,id,h,a,winner=null){
+  // Atualiza cloudState em memória de forma síncrona
   if(!cloudState.scores[user]) cloudState.scores[user] = {};
-  cloudState.scores[user][id] = {h, a};
+  cloudState.scores[user][id] = {h, a, winner: winner || ''};
 
-  // 2. Dispara sincronização em background (não bloqueia UI)
-  syncToCloud(user, id, h, a);
+  // Dispara sincronização em background (não bloqueia UI)
+  syncToCloud(user, id, h, a, winner);
 }
 
 function countFilled(user){
@@ -531,11 +491,17 @@ function groupFillCount(letter,user){
    PLAYERS LOGIN PANEL
 ═══════════════════════════════════════════════════════ */
 function renderPlayersLogin(){
-  const users=getUsers();
   const list=document.getElementById('players-list-login');
   if(!list)return;
-  const names=Object.keys(users);
-  if(!names.length){list.innerHTML='<div style="font-size:.78rem;color:var(--text3);text-align:center;padding:.5rem">Seja o primeiro a entrar! 🚀</div>';return;}
+
+  // 🔴 Usa cloudState.usuarios (de quem tem palpites)
+  const names = cloudState.usuarios || [];
+  
+  if(!names.length){
+    list.innerHTML='<div style="font-size:.78rem;color:var(--text3);text-align:center;padding:.5rem">Seja o primeiro a entrar! 🚀</div>';
+    return;
+  }
+  
   list.innerHTML=names.map(n=>{
     const st=userStatus(n);
     const cnt=countFilled(n);
@@ -549,19 +515,19 @@ function renderPlayersLogin(){
     </div>`;
   }).join('');
 }
+
 renderPlayersLogin();
 setInterval(renderPlayersLogin, 15000);
 
 // Auto-login por sessão
 (function(){
   const saved=getSession();
-  if(saved && getUsers()[saved]){
+  if(saved){
     S.user=saved;
     showGroups();
   }
 })();
 
-// Carrega do cloud em background
 loadFromCloud();
 
 /* ═══════════════════════════════════════════════════════
@@ -687,11 +653,6 @@ function openRoundFromTrail(roundIndex) {
   enterRound();
 }
 
-function selRound(i){
-  S.round=i+1;
-  document.getElementById('btn-act').textContent=`▶ RODADA ${S.round}`;
-}
-
 function enterRound(){
   renderGames();
   show('s-games');
@@ -718,7 +679,6 @@ function renderGames(){
 
   list.innerHTML=rd.games.map((g,gi)=>{
     const id=g.id;
-    // O bloqueio agora é individual
     const lk = gameIsLocked(g);
 
     const sc = getSc(S.user, id);
@@ -767,7 +727,6 @@ function onInput(id){
 }
 
 function saveGame(id,gi,silent=false){
-  // Checagem extra de segurança no momento do clique
   const g = S.rounds[S.round-1].games.find(x => x.id === id);
   if (g && gameIsLocked(g)) { toast('🔒 Jogo já iniciado! Não é possível alterar.', 'err'); return; }
 
@@ -874,7 +833,7 @@ function closeContinue() {
   clearTimeout(autoPopupTimer);
 }
 
-document.getElementById('continue-overlay').addEventListener('click', function(e) {
+document.getElementById('continue-overlay')?.addEventListener('click', function(e) {
   if (e.target === this) closeContinue();
 });
 document.addEventListener('keydown', e => {
@@ -952,29 +911,33 @@ function toast(msg,type='ok'){
 
 /* ═══════════════════════════════════════════════════════
    RANKING & RESULTADOS OFICIAIS
+   🔴 CORREÇÃO: Pontuação agora é baseada APENAS no PLACAR
+   "winner" é usado APENAS para determinar qualificação no mata-mata
 ═══════════════════════════════════════════════════════ */
 const RESULTS_KEY = 'bolao2026_results';
-const ADMIN_PW_HASH = hashPw('admin123'); // senha padrão para testes
+const ADMIN_PW_HASH = hashPw('admin123');
 
-function getOfficialResults(){return JSON.parse(localStorage.getItem(RESULTS_KEY)||'{}')}
+function getOfficialResults(){
+  // 🔴 SEMPRE lê do cloudState (nunca do localStorage)
+  return cloudLoaded ? cloudState.oficiais : {};
+}
 
-async function saveOfficialResult(matchId, h, a){
-  // 1. Puxa os resultados oficiais locais corretamente e salva
-  const results = getOfficialResults();
-  results[matchId] = {h, a};
-  localStorage.setItem(RESULTS_KEY, JSON.stringify(results));
+async function saveOfficialResult(matchId, h, a, winner=''){
+  // Atualiza cloudState em memória
+  if (!cloudState.oficiais) cloudState.oficiais = {};
+  cloudState.oficiais[matchId] = {h, a, winner};
 
-  // 2. Envia para a planilha do Google
   if (!GOOGLE_SCRIPT_URL) return;
   try {
     await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // 🔴 CORS Ajustado
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'save_official',
         match_id: matchId,
         score_home: h,
-        score_away: a
+        score_away: a,
+        winner: winner
       })
     });
   } catch (error) {
@@ -982,6 +945,8 @@ async function saveOfficialResult(matchId, h, a){
   }
 }
 
+// 🔴 FUNÇÃO CRÍTICA: Calcula pontos baseado APENAS no PLACAR
+// winner é ignorado na fase de grupos e no mata-mata para pontuação
 function calcPoints(palpite, oficial){
   if(!palpite || palpite.h==='' || palpite.a==='') return null;
   if(!oficial  || oficial.h ==='' || oficial.a ==='') return null;
@@ -989,19 +954,18 @@ function calcPoints(palpite, oficial){
   const ph=parseInt(palpite.h), pa=parseInt(palpite.a);
   const oh=parseInt(oficial.h),  oa=parseInt(oficial.a);
 
+  // Placar exato = 3 pts
   if(ph===oh && pa===oa) return 3;
 
+  // Resultado certo (mesmo resultado, mas placar diferente) = 1.5 pts
   const pRes = ph>pa?'H': ph<pa?'A':'D';
   const oRes = oh>oa?'H': oh<oa?'A':'D';
   if(pRes===oRes) return 1.5;
 
+  // Errou = 0 pts
   return 0;
 }
 
-// 🔴 CORREÇÃO: showRanking agora é assíncrona e ESPERA o loadFromCloud()
-// terminar antes de renderizar. Antes, renderRanking() rodava de imediato
-// e podia usar dados locais desatualizados (cloudLoaded ainda false),
-// mostrando só o que existia neste navegador.
 async function showRanking(){
   show('s-ranking');
   const isAdmin = localStorage.getItem('bolao_admin')==='1';
@@ -1044,7 +1008,8 @@ function renderRanking(){
         const posCls = pos===1?'p1':pos===2?'p2':pos===3?'p3':'pN';
         const cardCls = pos<=3?`rank-${pos}`:'';
         const medal = medals[i] || '';
-        const pct = ALL_IDS.length ? Math.round(r.filled/ALL_IDS.length*100) : 0;
+        const allMatchIds = [...ALL_IDS, ...ALL_KO_IDS];
+        const pct = allMatchIds.length ? Math.round(r.filled/allMatchIds.length*100) : 0;
         const ptsDisplay = r.pts % 1 === 0 ? r.pts.toString() : r.pts.toFixed(1);
 
         return`<div class="rank-card ${cardCls}" onclick="showUserDetail('${r.user.replace(/'/g,"\\'")}')">
@@ -1123,9 +1088,10 @@ function saveOfficialGameResult(matchId){
   renderRanking();
   toast('✔ Resultado salvo!','ok');
 }
+
 /* ═══════════════════════════════════════════════════════
    MATA-MATA DATA (KNOCKOUT STAGE)
-   Estrutura completa com bloqueio por horário individual
+   🔴 "winner" aqui é APENAS para qualificação, NÃO para pontuação
 ═══════════════════════════════════════════════════════ */
 
 const KNOCKOUT_ROUNDS = [
@@ -1136,7 +1102,6 @@ const KNOCKOUT_ROUNDS = [
     sides: ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left',
             'right','right','right','right','right','right','right','right'],
     matches: [
-      // LADO ESQUERDO
       { id: 'KO_R16_1',  slot: 1,  side: 'left',  label: 'SF1',  h: { abbr:'ALE', f:'🇩🇪', n:'Alemanha'       }, a: { abbr:'PAR', f:'🇵🇾', n:'Paraguai'        }, dt:'29/Jun', tm:'17:30', dtISO:'2026-06-29T17:30:00-03:00' },
       { id: 'KO_R16_2',  slot: 2,  side: 'left',  label: 'SF2',  h: { abbr:'FRA', f:'🇫🇷', n:'França'         }, a: { abbr:'SUE', f:'🇸🇪', n:'Suécia'          }, dt:'30/Jun', tm:'18:00', dtISO:'2026-06-30T18:00:00-03:00' },
       { id: 'KO_R16_3',  slot: 3,  side: 'left',  label: 'SF3',  h: { abbr:'AFS', f:'🇿🇦', n:'África do Sul'  }, a: { abbr:'CAN', f:'🇨🇦', n:'Canadá'          }, dt:'28/Jun', tm:'16:00', dtISO:'2026-06-28T16:00:00-03:00' },
@@ -1145,7 +1110,6 @@ const KNOCKOUT_ROUNDS = [
       { id: 'KO_R16_6',  slot: 6,  side: 'left',  label: 'SF6',  h: { abbr:'ESP', f:'🇪🇸', n:'Espanha'        }, a: { abbr:'AUT', f:'🇦🇹', n:'Áustria'         }, dt:'02/Jul', tm:'16:00', dtISO:'2026-07-02T16:00:00-03:00' },
       { id: 'KO_R16_7',  slot: 7,  side: 'left',  label: 'SF7',  h: { abbr:'EUA', f:'🇺🇸', n:'Estados Unidos' }, a: { abbr:'BOS', f:'🇧🇦', n:'Bósnia'          }, dt:'01/Jul', tm:'21:00', dtISO:'2026-07-01T21:00:00-03:00' },
       { id: 'KO_R16_8',  slot: 8,  side: 'left',  label: 'SF8',  h: { abbr:'BEL', f:'🇧🇪', n:'Bélgica'        }, a: { abbr:'SEN', f:'🇸🇳', n:'Senegal'         }, dt:'01/Jul', tm:'17:00', dtISO:'2026-07-01T17:00:00-03:00' },
-      // LADO DIREITO
       { id: 'KO_R16_9',  slot: 9,  side: 'right', label: 'SF9',  h: { abbr:'BRA', f:'🇧🇷', n:'Brasil'         }, a: { abbr:'JAP', f:'🇯🇵', n:'Japão'           }, dt:'29/Jun', tm:'14:00', dtISO:'2026-06-29T14:00:00-03:00' },
       { id: 'KO_R16_10', slot: 10, side: 'right', label: 'SF10', h: { abbr:'CMA', f:'🇨🇮', n:'Costa do Marfim'}, a: { abbr:'NOR', f:'🇳🇴', n:'Noruega'         }, dt:'30/Jun', tm:'14:00', dtISO:'2026-06-30T14:00:00-03:00' },
       { id: 'KO_R16_11', slot: 11, side: 'right', label: 'SF11', h: { abbr:'MEX', f:'🇲🇽', n:'México'         }, a: { abbr:'EQU', f:'🇪🇨', n:'Equador'         }, dt:'30/Jun', tm:'22:00', dtISO:'2026-06-30T22:00:00-03:00' },
@@ -1202,7 +1166,6 @@ const KNOCKOUT_ROUNDS = [
   }
 ];
 
-// Flat list de todos os IDs do mata-mata (para contagem global)
 const ALL_KO_IDS = KNOCKOUT_ROUNDS.flatMap(r => r.matches.map(m => m.id));
 
 /* ═══════════════════════════════════════════════════════
@@ -1214,68 +1177,77 @@ function koGameIsLocked(match) {
 }
 
 function getKoSc(user, id) {
-  const sc = cloudLoaded ? cloudState.scores : getScores();
-  return (sc[user] && sc[user][id] != null) ? sc[user][id] : null;
+  return (cloudState.scores[user] && cloudState.scores[user][id] != null) ? cloudState.scores[user][id] : null;
 }
 
-// 🔴 CORREÇÃO: agora repassa "winner" para syncToCloud, que antes
-// descartava esse dado silenciosamente (assinatura só aceitava h, a).
 function saveKoSc(user, id, h, a, winner = null) {
-  const sc = getScores();
-  if (!sc[user]) sc[user] = {};
-  sc[user][id] = { h, a, winner };
-  saveScores(sc);
   if (!cloudState.scores[user]) cloudState.scores[user] = {};
-  cloudState.scores[user][id] = { h, a, winner };
+  cloudState.scores[user][id] = { h, a, winner: winner || '' };
   syncToCloud(user, id, h, a, winner);
 }
 
-// Retorna o time "vencedor" de um jogo KO:
-// 1. Campo `winner` explícito ('h'/'a') → pênaltis ou prorrogação
-// 2. Senão deduz pelo placar
+// 🔴 RETORNA O VENCEDOR BASEADO NO PLACAR + CAMPO "winner"
+// winner é usado APENAS quando há empate (pênaltis/prorrogação)
 function getKoWinner(matchId) {
-  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
+  const results = cloudState.oficiais || {};
   const r = results[matchId];
   if (!r || r.h === '' || r.a === '') return null;
+  
   const m = findKoMatch(matchId);
   if (!m) return null;
   const teams = resolveKoTeams(m);
-  if (r.winner === 'h') return teams.h;
-  if (r.winner === 'a') return teams.a;
-  const ph = parseInt(r.h), pa = parseInt(r.a);
-  if (ph > pa) return teams.h;
-  if (pa > ph) return teams.a;
-  return null; // empate sem winner definido
-}
-
-function getKoLoser(matchId) {
-  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
-  const r = results[matchId];
-  if (!r || r.h === '' || r.a === '') return null;
-  const m = findKoMatch(matchId);
-  if (!m) return null;
-  const teams = resolveKoTeams(m);
-  if (r.winner === 'h') return teams.a;
-  if (r.winner === 'a') return teams.h;
-  const ph = parseInt(r.h), pa = parseInt(r.a);
-  if (ph > pa) return teams.a;
-  if (pa > ph) return teams.h;
+  
+  const oh = parseInt(r.h), oa = parseInt(r.a);
+  
+  // Se há campo winner explícito E há empate no placar, usa winner
+  if (r.winner === 'h' && oh === oa) return teams.h;
+  if (r.winner === 'a' && oh === oa) return teams.a;
+  
+  // Senão, deduz do placar
+  if (oh > oa) return teams.h;
+  if (oa > oh) return teams.a;
+  
+  // Empate sem winner explícito = não há vencedor
   return null;
 }
 
-// Vencedor do palpite do usuário (para alimentar fases seguintes no preview)
-function getKoWinnerFromPalpite(matchId, user) {
-  const scores = cloudLoaded ? cloudState.scores : getScores();
-  const sc = scores[user]?.[matchId];
-  if (!sc || sc.h === '' || sc.a === '') return null;
+function getKoLoser(matchId) {
+  const results = cloudState.oficiais || {};
+  const r = results[matchId];
+  if (!r || r.h === '' || r.a === '') return null;
+  
   const m = findKoMatch(matchId);
   if (!m) return null;
   const teams = resolveKoTeams(m);
-  if (sc.winner === 'h') return teams.h;
-  if (sc.winner === 'a') return teams.a;
+  
+  const oh = parseInt(r.h), oa = parseInt(r.a);
+  
+  if (r.winner === 'h' && oh === oa) return teams.a;
+  if (r.winner === 'a' && oh === oa) return teams.h;
+  
+  if (oh > oa) return teams.a;
+  if (oa > oh) return teams.h;
+  
+  return null;
+}
+
+function getKoWinnerFromPalpite(matchId, user) {
+  const scores = cloudState.scores || {};
+  const sc = scores[user]?.[matchId];
+  if (!sc || sc.h === '' || sc.a === '') return null;
+  
+  const m = findKoMatch(matchId);
+  if (!m) return null;
+  const teams = resolveKoTeams(m);
+  
   const ph = parseInt(sc.h), pa = parseInt(sc.a);
+  
+  if (sc.winner === 'h' && ph === pa) return teams.h;
+  if (sc.winner === 'a' && ph === pa) return teams.a;
+  
   if (ph > pa) return teams.h;
   if (pa > ph) return teams.a;
+  
   return null;
 }
 
@@ -1287,16 +1259,13 @@ function findKoMatch(id) {
   return null;
 }
 
-// Resolve os times de uma partida KO (considerando feedFrom)
 function resolveKoTeams(match) {
-  if (match.h && match.a) return { h: match.h, a: match.a }; // times fixos (R16)
+  if (match.h && match.a) return { h: match.h, a: match.a };
 
-  // Times derivados de resultados anteriores
   const [srcA, srcB] = match.feedFrom || [];
   let teamA = null, teamB = null;
 
   if (match.feedLoser) {
-    // Disputa 3º lugar: perdedores das semis
     teamA = srcA ? getKoLoser(srcA) : null;
     teamB = srcB ? getKoLoser(srcB) : null;
   } else {
@@ -1328,7 +1297,6 @@ function renderKnockoutBracket() {
   const container = document.getElementById('ko-bracket');
   if (!container) return;
 
-  // Tabs de fase
   const tabsEl = document.getElementById('ko-tabs');
   if (tabsEl) {
     tabsEl.innerHTML = KNOCKOUT_ROUNDS.map((r, i) => `
@@ -1344,14 +1312,12 @@ function renderKnockoutBracket() {
   let html = `<div class="ko-round-title">${round.label}</div>`;
 
   if (isFinals) {
-    // Layout especial para finais (3º lugar + final lado a lado)
     html += `<div class="ko-finals-wrap">`;
     round.matches.forEach(match => {
       html += renderKoMatchCard(match, true);
     });
     html += `</div>`;
   } else {
-    // Layout 2 colunas (esquerda / direita)
     const leftMatches  = round.matches.filter(m => m.side === 'left');
     const rightMatches = round.matches.filter(m => m.side === 'right');
 
@@ -1381,11 +1347,11 @@ function renderKoMatchCard(match, isFinal) {
   const saved = hv !== '' && av !== '' && savedWinner !== '';
   const teamsKnown = teams.h.abbr !== '?' && teams.a.abbr !== '?';
 
-  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
+  const results = cloudState.oficiais || {};
   const official = results[match.id];
   const hasOfficial = official && official.h !== '' && official.a !== '';
 
-  // Pontuação desta partida
+  // 🔴 Pontuação baseada APENAS no placar (calcPoints ignora winner)
   let scoreDisplay = '';
   if (hasOfficial) {
     const pts = calcPoints(sc, official);
@@ -1397,11 +1363,8 @@ function renderKoMatchCard(match, isFinal) {
   const isFinalMatch = match.id === 'KO_FINAL';
   const is3rd        = match.id === 'KO_3RD';
 
-  // Bloco de empate: qual time avança? (pênaltis/prorrogação)
-  // Mostra sempre que os times são conhecidos e o jogo não está bloqueado
   const showWinnerPicker = teamsKnown && !locked;
 
-  // Quando bloqueado, mostra quem o usuário escolheu como vencedor
   let lockedWinnerLine = '';
   if (locked && teamsKnown && hv !== '' && av !== '') {
     const chosenName = savedWinner === 'h' ? teams.h.n : savedWinner === 'a' ? teams.a.n : '—';
@@ -1409,7 +1372,6 @@ function renderKoMatchCard(match, isFinal) {
     lockedWinnerLine = `<div class="ko-winner-chosen">🏆 Avança: ${chosenFlag} ${chosenName}</div>`;
   }
 
-  // Resultado oficial: vencedor real
   let officialWinnerLine = '';
   if (hasOfficial) {
     const officialWinner = getKoWinner(match.id);
@@ -1494,7 +1456,6 @@ function selectKoRound(idx) {
 }
 
 function onKoInput(id) {
-  // Auto-save só quando placar E vencedor estiverem preenchidos
   const h = document.getElementById(`ko-h-${id}`)?.value;
   const a = document.getElementById(`ko-a-${id}`)?.value;
   const winnerEl = document.querySelector(`input[name="winner-${id}"]:checked`);
@@ -1502,7 +1463,6 @@ function onKoInput(id) {
 }
 
 function onWinnerChange(id) {
-  // Re-estiliza as opções e tenta salvar
   const opts = document.querySelectorAll(`#wp-${id} .ko-winner-opt`);
   opts.forEach(opt => {
     const radio = opt.querySelector('input[type="radio"]');
@@ -1539,7 +1499,7 @@ function saveKoGame(id, silent = false) {
 
   const card = document.getElementById(`ko-card-${id}`);
   if (card) card.classList.add('saved');
-  // Remove hint de não salvo
+  
   const hint = card?.querySelector('.ko-unsaved-hint');
   if (hint) hint.remove();
 
@@ -1564,35 +1524,29 @@ function updateKoProgress() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   RANKING (fase de grupos + mata-mata combinados)
-   ───────────────────────────────────────────────────────
-   🔴 CORREÇÃO: a lista de participantes (allUsers) agora é
-   construída A PARTIR de quem tem palpites salvos na nuvem
-   (Object.keys(scores)) — não só da aba "Usuarios". Antes,
-   se o registro de login falhasse silenciosamente (ver
-   syncLoginToCloud), o jogador sumia do ranking mesmo tendo
-   todos os palpites computados corretamente nos bastidores.
+   🔴 BUILD RANKING: ÚNICA FONTE DE VERDADE É CLOUDSTATE
+   Pontuação baseada APENAS em PLACAR, nunca em "winner"
 ═══════════════════════════════════════════════════════ */
 function buildRanking() {
-  const scores  = cloudLoaded ? cloudState.scores : getScores();
-  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
+  const scores  = cloudState.scores || {};
+  const results = cloudState.oficiais || {};
 
-  const playersFromScores   = Object.keys(scores);
+  // 🔴 Lista de usuários vem APENAS do cloudState
+  const playersFromScores   = Object.keys(scores || {});
   const playersFromRegistry = cloudState.usuarios || [];
-  const localUsers          = Object.keys(getUsers());
-
-  const allUsers = [...new Set([...playersFromScores, ...playersFromRegistry, ...localUsers])].filter(Boolean);
+  const allUsers = [...new Set([...playersFromScores, ...playersFromRegistry])].filter(Boolean);
 
   const matchesWithResult = Object.keys(results).length;
 
   const ranking = allUsers.map(user => {
     let pts = 0, exact = 0, partial = 0, miss = 0, pending = 0;
 
-    // Pontos da fase de grupos
+    // ── FASE DE GRUPOS: baseada APENAS no placar ──
     ALL_IDS.forEach(id => {
       const palpite = scores[user] ? scores[user][id] : null;
       const oficial = results[id];
       const p = calcPoints(palpite, oficial);
+      
       if      (p === 3)   { pts += 3; exact++; }
       else if (p === 1.5) { pts += 1.5; partial++; }
       else if (p === 0)   { miss++; }
@@ -1600,27 +1554,21 @@ function buildRanking() {
       else                { pending++; }
     });
 
-    // Pontos do mata-mata (lógica especial: empate no placar → verifica winner)
+    // ── MATA-MATA: também baseado APENAS no placar ──
     ALL_KO_IDS.forEach(id => {
       const palpite = scores[user] ? scores[user][id] : null;
       const oficial = results[id];
-      if (!palpite || palpite.h === '' || palpite.a === '' || !palpite.winner) return;
+      
+      if (!palpite || palpite.h === '' || palpite.a === '') return;
       if (!oficial  || oficial.h  === '' || oficial.a  === '') { pending++; return; }
 
-      const ph = parseInt(palpite.h), pa = parseInt(palpite.a);
-      const oh = parseInt(oficial.h),  oa = parseInt(oficial.a);
-
-      // Placar exato E vencedor correto = 3 pts
-      if (ph === oh && pa === oa && palpite.winner === oficial.winner) {
-        pts += 3; exact++; return;
-      }
-      // Resultado parcial: acertou quem avança (seja pelo placar ou pelo campo winner)
-      const pWinner = ph > pa ? 'h' : ph < pa ? 'a' : palpite.winner;
-      const oWinner = oficial.winner || (oh > oa ? 'h' : oh < oa ? 'a' : null);
-      if (oWinner && pWinner === oWinner) {
-        pts += 1.5; partial++; return;
-      }
-      miss++;
+      // 🔴 calcPoints ignora winner — usa APENAS o placar
+      const p = calcPoints(palpite, oficial);
+      
+      if      (p === 3)   { pts += 3; exact++; }
+      else if (p === 1.5) { pts += 1.5; partial++; }
+      else if (p === 0)   { miss++; }
+      else                { pending++; }
     });
 
     const allMatchIds = [...ALL_IDS, ...ALL_KO_IDS];
@@ -1632,7 +1580,12 @@ function buildRanking() {
     return { user, pts, exact, partial, miss, pending, filled };
   });
 
-  ranking.sort((a, b) => b.pts !== a.pts ? b.pts - a.pts : b.exact !== a.exact ? b.exact - a.exact : a.user.localeCompare(b.user));
+  ranking.sort((a, b) => 
+    b.pts !== a.pts ? b.pts - a.pts : 
+    b.exact !== a.exact ? b.exact - a.exact : 
+    a.user.localeCompare(b.user)
+  );
+  
   return { ranking, matchesWithResult };
 }
 
@@ -1660,8 +1613,8 @@ function populateAdminGroupSelect() {
    RANKING DETAIL: palpites da fase de grupos + mata-mata
 ═══════════════════════════════════════════════════════ */
 function showUserDetail(user) {
-  const results = cloudLoaded ? cloudState.oficiais : getOfficialResults();
-  const scores  = cloudLoaded ? cloudState.scores : getScores();
+  const results = cloudState.oficiais || {};
+  const scores  = cloudState.scores || {};
 
   const wrap = document.getElementById('ranking-detail-wrap');
   const ttl  = document.getElementById('rd-title');
@@ -1671,7 +1624,7 @@ function showUserDetail(user) {
 
   const rows = [];
 
-  // ── FASE DE GRUPOS ──────────────────────────────────
+  // ── FASE DE GRUPOS ──
   rows.push(`<div class="detail-section-title">⚽ Fase de Grupos</div>`);
 
   Object.entries(MATCHES).forEach(([letter, rds]) => {
@@ -1715,7 +1668,7 @@ function showUserDetail(user) {
     });
   });
 
-  // ── MATA-MATA ────────────────────────────────────────
+  // ── MATA-MATA ──
   rows.push(`<div class="detail-section-title ko-section-title">⚔️ Palpites Mata-Mata</div>`);
 
   KNOCKOUT_ROUNDS.forEach(round => {
@@ -1773,8 +1726,7 @@ function showUserDetail(user) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   ADMIN: lista de jogos (grupos OU mata-mata) para inserir
-   resultados oficiais
+   ADMIN: lista de jogos (grupos OU mata-mata)
 ═══════════════════════════════════════════════════════ */
 function renderAdminGames() {
   const letter = document.getElementById('admin-group-sel').value;
@@ -1787,7 +1739,7 @@ function renderAdminGames() {
     const round = KNOCKOUT_ROUNDS.find(r => r.id === roundId);
     if (!round) { container.innerHTML = ''; return; }
 
-    const results = getOfficialResults();
+    const results = cloudState.oficiais || {};
     let html = '';
     round.matches.forEach(g => {
       const teams = resolveKoTeams(g);
@@ -1825,7 +1777,7 @@ function renderAdminGames() {
               onchange="onAdminWinnerChange('${g.id}')">
             ${teams.a.f} ${teams.a.n}
           </label>
-          <span class="agr-winner-hint">(use quando houver pênaltis/prorrogação)</span>
+          <span class="agr-winner-hint">(use APENAS quando houver pênaltis/prorrogação)</span>
         </div>` : `<div class="agr-winner-hint" style="padding-left:.3rem">Times ainda não definidos</div>`}
       </div>`;
     });
@@ -1834,7 +1786,7 @@ function renderAdminGames() {
   }
 
   // Fase de grupos
-  const results = getOfficialResults();
+  const results = cloudState.oficiais || {};
   const rounds  = MATCHES[letter];
   if (!rounds) { container.innerHTML = ''; return; }
 
@@ -1884,27 +1836,7 @@ async function saveOfficialKoResult(matchId) {
   if (h === '' || a === '') { toast('⚠ Preencha os dois placares!', 'err'); return; }
   if (!winner) { toast('⚠ Escolha o vencedor!', 'err'); return; }
 
-  // Salva localmente (cache de leitura)
-  const results = getOfficialResults();
-  results[matchId] = { h, a, winner };
-  localStorage.setItem(RESULTS_KEY, JSON.stringify(results));
-
-  // Atualiza cloudState em memória (otimista, antes do próximo poll)
-  if (!cloudState.oficiais) cloudState.oficiais = {};
-  cloudState.oficiais[matchId] = { h, a, winner };
-
-  // Envia ao Google Sheets — o backend agora persiste o campo winner
-  // numa coluna própria, então ele não se perde no próximo loadFromCloud()
-  if (GOOGLE_SCRIPT_URL) {
-    try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'save_official', match_id: matchId, score_home: h, score_away: a, winner })
-      });
-    } catch (e) { console.warn('Erro ao salvar resultado KO:', e); }
-  }
-
+  saveOfficialResult(matchId, h, a, winner);
   renderAdminGames();
   renderRanking();
   toast('✔ Resultado salvo!', 'ok');
